@@ -2,6 +2,7 @@
   "name": "realtor-backend",
   "version": "1.0.0",
   "description": "Realtor GraphQL API Backend",
+  "license": "BSD-3-Clause",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",

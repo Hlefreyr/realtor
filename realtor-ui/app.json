@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Realtor",
+    "slug": "realtor-ui",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/happy_house.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/happy_house.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "web": {
+      "favicon": "./assets/happy_house.png",
+      "bundler": "metro"
+    }
+  }
+}

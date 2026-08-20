@@ -6,7 +6,8 @@
     "start": "expo start",
     "web": "expo start --web",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:e2e": "npm --prefix e2e test"
   },
   "dependencies": {
     "@apollo/client": "^3.12.7",

@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { XStack, YStack, Text, Button } from 'tamagui';
 
-interface HeaderProps {
-  onLoginPress?: () => void;
+export interface HeaderUserProps {
+  email: string;
+  role: 'admin' | 'user';
 }
 
-export const Header: React.FC<HeaderProps> = ({ onLoginPress }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+interface HeaderProps {
+  user?: HeaderUserProps | null;
+  onLoginPress?: () => void;
+  onLogoutPress?: () => void;
+}
 
-  const handleLoginClick = () => {
-    if (onLoginPress) {
-      onLoginPress();
-    } else {
-      setIsLoggedIn(!isLoggedIn);
-    }
-  };
-
+export const Header: React.FC<HeaderProps> = ({
+  user,
+  onLoginPress,
+  onLogoutPress,
+}) => {
   return (
     <XStack
       testID="header-container"
@@ -57,30 +58,56 @@ export const Header: React.FC<HeaderProps> = ({ onLoginPress }) => {
         </Text>
       </XStack>
 
-      {/* Top-Right Corner Actions: Login Button */}
+      {/* User Actions Corner */}
       <XStack alignItems="center" gap="$3">
-        <Button
-          testID="login-button"
-          accessibilityLabel="Log In"
-          size="$4"
-          theme="active"
-          backgroundColor="#2563eb"
-          hoverStyle={{ backgroundColor: '#1d4ed8', scale: 1.02 }}
-          pressStyle={{ backgroundColor: '#1e40af', scale: 0.98 }}
-          borderRadius="$6"
-          paddingHorizontal="$5"
-          elevation="$2"
-          onPress={handleLoginClick}
-        >
-          <Text
-            color="white"
-            fontWeight="700"
-            fontSize={15}
-            letterSpacing={0.2}
+        {user ? (
+          <XStack alignItems="center" gap="$3">
+            <YStack alignItems="flex-end">
+              <Text testID="user-email-badge" fontSize={13} fontWeight="700" color="#0f172a">
+                {user.email}
+              </Text>
+              <Text fontSize={11} fontWeight="600" color={user.role === 'admin' ? '#2563eb' : '#64748b'}>
+                {user.role.toUpperCase()}
+              </Text>
+            </YStack>
+            <Button
+              testID="logout-button"
+              accessibilityLabel="Log Out"
+              size="$3"
+              backgroundColor="#f1f5f9"
+              hoverStyle={{ backgroundColor: '#e2e8f0' }}
+              borderRadius="$5"
+              onPress={onLogoutPress}
+            >
+              <Text color="#475569" fontWeight="700" fontSize={13}>
+                Log Out
+              </Text>
+            </Button>
+          </XStack>
+        ) : (
+          <Button
+            testID="login-button"
+            accessibilityLabel="Log In"
+            size="$4"
+            theme="active"
+            backgroundColor="#2563eb"
+            hoverStyle={{ backgroundColor: '#1d4ed8', scale: 1.02 }}
+            pressStyle={{ backgroundColor: '#1e40af', scale: 0.98 }}
+            borderRadius="$6"
+            paddingHorizontal="$5"
+            elevation="$2"
+            onPress={onLoginPress}
           >
-            {isLoggedIn ? 'Account' : 'Log In'}
-          </Text>
-        </Button>
+            <Text
+              color="white"
+              fontWeight="700"
+              fontSize={15}
+              letterSpacing={0.2}
+            >
+              Log In
+            </Text>
+          </Button>
+        )}
       </XStack>
     </XStack>
   );

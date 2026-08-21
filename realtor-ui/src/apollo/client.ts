@@ -1,4 +1,5 @@
-import { ApolloClient, InMemoryCache, HttpLink, NormalizedCacheObject } from '@apollo/client';
+import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, NormalizedCacheObject } from '@apollo/client';
+import { onError } from '@apollo/client/link/error';
 
 export const getGraphQLUri = (customEnv?: Record<string, string | undefined>): string => {
   const env = customEnv || (typeof process !== 'undefined' ? process.env : {});
@@ -10,14 +11,28 @@ export const getGraphQLUri = (customEnv?: Record<string, string | undefined>): s
   return 'http://localhost:4000/graphql';
 };
 
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  if (graphQLErrors) {
+    graphQLErrors.forEach(({ message, locations, path }) =>
+      console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`)
+    );
+  }
+  if (networkError) {
+    console.log(`[Network error]: ${networkError}`);
+  }
+});
+
 export const createApolloClient = (
   uri?: string,
   customEnv?: Record<string, string | undefined>
 ): ApolloClient<NormalizedCacheObject> => {
+  const httpLink = new HttpLink({
+    uri: uri || getGraphQLUri(customEnv),
+    fetch: typeof window !== 'undefined' ? window.fetch.bind(window) : undefined,
+  });
+
   return new ApolloClient({
-    link: new HttpLink({
-      uri: uri || getGraphQLUri(customEnv),
-    }),
+    link: ApolloLink.from([errorLink, httpLink]),
     cache: new InMemoryCache(),
   });
 };

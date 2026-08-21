@@ -1,12 +1,28 @@
 export const typeDefs = `#graphql
-  type HealthStatus {
+  type User {
+    id: ID!
+    email: String!
+    role: String!
+  }
+
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
+  type Health {
     status: String!
-    timestamp: String!
     service: String!
+    timestamp: String!
   }
 
   type Query {
     hello: String!
-    health: HealthStatus!
+    me: User
+    health: Health!
+  }
+
+  type Mutation {
+    login(email: String!, password: String!): AuthPayload!
   }
 `;

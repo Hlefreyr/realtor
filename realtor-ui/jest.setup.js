@@ -1,6 +1,16 @@
 import '@testing-library/jest-native/extend-expect';
 
-// Mock matchMedia for web compatibility in test environment
+const originalConsoleError = console.error;
+console.error = (...args: any[]) => {
+  if (
+    typeof args[0] === 'string' &&
+    (args[0].includes('An update to') || args[0].includes('was not wrapped in act'))
+  ) {
+    return;
+  }
+  originalConsoleError(...args);
+};
+
 if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,

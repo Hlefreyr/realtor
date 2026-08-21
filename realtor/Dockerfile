@@ -6,6 +6,7 @@ COPY package*.json tsconfig.json ./
 RUN npm ci
 
 COPY src ./src
+RUN npm run build
 
 EXPOSE 4000
 

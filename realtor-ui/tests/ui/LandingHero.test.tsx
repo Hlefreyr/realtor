@@ -18,9 +18,26 @@ const mockSuccess = [
       },
     },
   },
+  {
+    request: {
+      query: GET_HELLO,
+    },
+    result: {
+      data: {
+        __typename: 'Query',
+        hello: 'Hello Realtor! Welcome to your full-stack real estate platform.',
+      },
+    },
+  },
 ];
 
 const mockError = [
+  {
+    request: {
+      query: GET_HELLO,
+    },
+    error: new Error('Network connection failed'),
+  },
   {
     request: {
       query: GET_HELLO,
@@ -85,16 +102,14 @@ describe('LandingHero UI Component Tests', () => {
   });
 
   it('should display error message when GraphQL query fails and allow retry', async () => {
-    const { getByTestId, getByText, getByTestId: getRetry } = renderComponent(mockError);
+    const { getByTestId } = renderComponent(mockError);
 
     await waitFor(() => {
       expect(getByTestId('graphql-error')).toBeTruthy();
     });
 
     const retryButton = getByTestId('graphql-retry-button');
-    await act(async () => {
-      fireEvent.press(retryButton);
-    });
+    fireEvent.press(retryButton);
     expect(retryButton).toBeTruthy();
   });
 
@@ -105,24 +120,18 @@ describe('LandingHero UI Component Tests', () => {
     });
     const input = getByPlaceholderText('Search by city, neighborhood, or address...');
 
-    await act(async () => {
-      fireEvent.changeText(input, 'Beverly Hills, CA');
-    });
+    fireEvent.changeText(input, 'Beverly Hills, CA');
     expect(input.props.value).toBe('Beverly Hills, CA');
 
     const searchButton = getByTestId('search-button');
-    await act(async () => {
-      fireEvent.press(searchButton);
-    });
+    fireEvent.press(searchButton);
     expect(mockOnSearch).toHaveBeenCalledWith('Beverly Hills, CA');
   });
 
   it('should handle search button press without onSearch callback', async () => {
     const { getByTestId } = renderComponent(mockSuccess);
     const searchButton = getByTestId('search-button');
-    await act(async () => {
-      fireEvent.press(searchButton);
-    });
+    fireEvent.press(searchButton);
     expect(searchButton).toBeTruthy();
   });
 });

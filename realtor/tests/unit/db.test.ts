@@ -11,13 +11,13 @@ describe('Database Configuration Unit Tests', () => {
     jest.clearAllMocks();
   });
 
-  it('should call mongoose.connect with provided URI', async () => {
+  it('should call mongoose.connect with provided URI and timeout options', async () => {
     (mongoose.connect as jest.Mock).mockResolvedValueOnce(mongoose);
 
     const uri = 'mongodb://testuser:testpass@localhost:27017/realtor_test';
     const conn = await connectDB(uri);
 
-    expect(mongoose.connect).toHaveBeenCalledWith(uri);
+    expect(mongoose.connect).toHaveBeenCalledWith(uri, { serverSelectionTimeoutMS: 2000 });
     expect(conn).toBe(mongoose);
   });
 
@@ -27,7 +27,9 @@ describe('Database Configuration Unit Tests', () => {
     (mongoose.connect as jest.Mock).mockResolvedValueOnce(mongoose);
 
     await connectDB();
-    expect(mongoose.connect).toHaveBeenCalledWith('mongodb://localhost:27017/realtor');
+    expect(mongoose.connect).toHaveBeenCalledWith('mongodb://localhost:27017/realtor', {
+      serverSelectionTimeoutMS: 2000,
+    });
 
     process.env.MONGO_URI = originalUri;
   });

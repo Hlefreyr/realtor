@@ -23,7 +23,6 @@ export const createServer = async (): Promise<AppServer> => {
   await apolloServer.start();
 
   app.use(cors());
-  app.use(express.json());
 
   // Rest health check endpoint
   app.get('/health', (_req: Request, res: Response) => {
@@ -33,6 +32,8 @@ export const createServer = async (): Promise<AppServer> => {
   // Apollo GraphQL endpoint
   app.use(
     '/graphql',
+    cors(),
+    express.json(),
     expressMiddleware(apolloServer, {
       context: async ({ req }) => ({ token: req.headers.authorization }),
     })
@@ -42,7 +43,7 @@ export const createServer = async (): Promise<AppServer> => {
     app,
     apolloServer,
     start: async () => {
-      // noop or additional start hooks
+      // noop
     },
     stop: async () => {
       await apolloServer.stop();

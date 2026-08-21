@@ -19,11 +19,15 @@ test.describe('Realtor Landing Page & Navigation E2E Tests', () => {
     await expect(loginButton).toBeVisible();
     await expect(loginButton).toHaveText('Log In');
 
-    // Click Login button to test toggle interaction
+    // Click Login button to open Login Modal
     await loginButton.click();
-    await expect(loginButton).toHaveText('Account');
-    await loginButton.click();
-    await expect(loginButton).toHaveText('Log In');
+    const modalContent = page.getByTestId('login-modal-content');
+    await expect(modalContent).toBeVisible();
+
+    // Close modal
+    const closeBtn = page.getByTestId('close-modal-button');
+    await closeBtn.click();
+    await expect(modalContent).not.toBeVisible();
 
     // 3. Verify Centered "Realtor" Title & Subtitle
     const heroTitle = page.getByTestId('hero-title');

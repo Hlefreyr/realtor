@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: realtor-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - realtor-network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: realtor-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_BASICAUTH=false
+    depends_on:
+      - mongo
+    networks:
+      - realtor-network
+
+  realtor:
+    build:
+      context: ./realtor
+      dockerfile: Dockerfile
+    container_name: realtor-backend-dev
+    restart: unless-stopped
+    command: npm run dev
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - MONGO_URI=mongodb://mongo:27017/realtor
+      - NODE_ENV=development
+    volumes:
+      - ./realtor/src:/app/src
+    depends_on:
+      - mongo
+    networks:
+      - realtor-network
+
+  realtor-ui:
+    build:
+      context: ./realtor-ui
+      dockerfile: Dockerfile.dev
+    container_name: realtor-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "8080:8081"
+    environment:
+      - EXPO_PUBLIC_GRAPHQL_URI=http://localhost:4000/graphql
+      - NODE_ENV=development
+    volumes:
+      - ./realtor-ui/src:/app/src
+    depends_on:
+      - realtor
+    networks:
+      - realtor-network
+
+volumes:
+  mongo_data:
+
+networks:
+  realtor-network:
+    driver: bridge

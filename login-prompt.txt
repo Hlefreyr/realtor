@@ -1,0 +1,17 @@
+Login functionality.
+Remember (agents.md) all UI chnages should be tested on several viewports: FF, Chrome, Edge, iPhone 17, Galavy S26 and Pixel 10.
+
+When user clicks login, a popup should appear offering user to login with email.
+Pre-seed the database with 2 users:
+Role admin: "admin@realtor.com" pwd "admin"
+Role user: "user@realtor.com" pwd "user".
+Of course password should be encrypted.
+
+When login is sucessfull, ui should load a dashboard. 
+Dashboard has a left hand side floating menu (can be expanded or hidden). 
+Menu has items:
+Dashboard
+Settings
+Admin (visible for admin only)
+Generate a dummy page for each item.
+ 

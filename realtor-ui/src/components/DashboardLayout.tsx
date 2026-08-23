@@ -4,6 +4,7 @@ import { Sidebar, TabType } from './Sidebar';
 import { DashboardView } from './views/DashboardView';
 import { SettingsView } from './views/SettingsView';
 import { AdminView } from './views/AdminView';
+import { AreasView, SavedArea, Point } from './views/AreasView';
 
 interface DashboardLayoutProps {
   userRole: 'admin' | 'user';
@@ -15,10 +16,51 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  const [settings, setSettings] = useState<{ unit: 'kilometers' | 'miles'; radius: number }>({
+    unit: 'kilometers',
+    radius: 50,
+  });
+
+  const [savedAreas, setSavedAreas] = useState<SavedArea[]>([]);
+
+  const handleUpdateSettings = (newSettings: { unit: 'kilometers' | 'miles'; radius: number }) => {
+    setSettings(newSettings);
+  };
+
+  const handleSaveArea = (area: { name: string; polygon: Point[] }) => {
+    const newAreaItem: SavedArea = {
+      id: `area-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      name: area.name,
+      polygon: area.polygon,
+      createdAt: new Date().toISOString(),
+    };
+    setSavedAreas((prev) => [...prev, newAreaItem]);
+  };
+
+  const handleDeleteArea = (id: string) => {
+    setSavedAreas((prev) => prev.filter((a) => a.id !== id));
+  };
+
   const renderActiveView = () => {
     switch (activeTab) {
+      case 'areas':
+        return (
+          <AreasView
+            unit={settings.unit}
+            radius={settings.radius}
+            savedAreas={savedAreas}
+            onSaveArea={handleSaveArea}
+            onDeleteArea={handleDeleteArea}
+          />
+        );
       case 'settings':
-        return <SettingsView />;
+        return (
+          <SettingsView
+            unit={settings.unit}
+            radius={settings.radius}
+            onUpdateSettings={handleUpdateSettings}
+          />
+        );
       case 'admin':
         return userRole === 'admin' ? <AdminView /> : <DashboardView />;
       case 'dashboard':

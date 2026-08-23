@@ -1,0 +1,21 @@
+Prompt for realtor. 
+
+Integration with google maps.
+I want to integrate with maps, so user can select areas where to look at the properties.
+Our first integration will be with Google maps, but later we can switch to other mapping solution.
+
+UI
+Add UI rule in agents.md. All text input should autosave when user stops typing.
+
+On configuration, add Units section where user can choose miles or kilometers and radius (e.g. 50km)
+
+Add another mehu item - Areas.
+The page should display a map, centered on the current location of the user and either with radius of Xkm (from user Settings) or showing all areas selected by the user. Scale should be adjusted accordingly.
+There should be a button "New area". Clicking on the button activates area selection mode. The button itself changes to "Finish"
+Area selection mode. Each right-click of the mouse should define a polygon corner and connect it with the previos polygon angle. "Double click" or long-press (for touch-screens) should define the final corener of the poligon.
+When user clicks "Finish" button, area should be stored in db under user profile.
+Right click of the mouse is "undo", removing last segment of the polygon. We are deferring implementation of the Undo for mobile devices.
+
+
+
+

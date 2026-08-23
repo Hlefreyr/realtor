@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
 import { User, hashUserPassword } from '../../src/models/User';
 import { seedUsers } from '../../src/seed';
 import { resolvers } from '../../src/schema/resolvers';
@@ -6,6 +7,7 @@ import { resolvers } from '../../src/schema/resolvers';
 describe('Authentication & User Model Unit Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(User, 'findOne').mockResolvedValue(null);
   });
 
   describe('User Model & Password Hashing', () => {
@@ -16,6 +18,22 @@ describe('Authentication & User Model Unit Tests', () => {
       });
       expect(user.email).toBe('test@realtor.com');
       expect(user.role).toBe('user');
+      expect(user.settings.unit).toBe('kilometers');
+      expect(user.settings.radius).toBe(50);
+      expect(user.savedAreas).toEqual([]);
+    });
+
+    it('should reuse mongoose.models.User if already registered', () => {
+      expect(mongoose.models.User).toBeDefined();
+      expect(User).toBe(mongoose.models.User);
+    });
+
+    it('should create new model if mongoose.models.User is undefined', () => {
+      const original = mongoose.models.User;
+      delete mongoose.models.User;
+      const FreshUser = mongoose.models.User || mongoose.model('User', User.schema);
+      expect(FreshUser).toBeDefined();
+      mongoose.models.User = original;
     });
 
     it('should hash password via hashUserPassword if modified', async () => {
@@ -89,14 +107,15 @@ describe('Authentication & User Model Unit Tests', () => {
 
   describe('resolvers.Query.me', () => {
     it('should return context user if present', async () => {
-      const mockUser = { id: '1', email: 'test@realtor.com', role: 'user' };
+      const mockUser = { id: '1', email: 'test@realtor.com', role: 'user', settings: { unit: 'kilometers', radius: 50 }, savedAreas: [] };
       const res = await resolvers.Query.me(null, null, { user: mockUser });
       expect(res).toEqual(mockUser);
     });
 
-    it('should return null if no context user', async () => {
+    it('should return default fallback user if no context user', async () => {
+      jest.spyOn(User, 'findOne').mockResolvedValue(null);
       const res = await resolvers.Query.me(null, null, {});
-      expect(res).toBeNull();
+      expect(res.role).toBe('user');
     });
   });
 
@@ -107,6 +126,8 @@ describe('Authentication & User Model Unit Tests', () => {
         _id: 'user123',
         email: 'user@realtor.com',
         role: 'user',
+        settings: { unit: 'kilometers', radius: 50 },
+        savedAreas: [],
         comparePassword: mockCompare,
       };
 
@@ -123,6 +144,8 @@ describe('Authentication & User Model Unit Tests', () => {
         id: 'user123',
         email: 'user@realtor.com',
         role: 'user',
+        settings: { unit: 'kilometers', radius: 50 },
+        savedAreas: [],
       });
       expect(result.token).toContain('mock-token-user123-user-');
     });

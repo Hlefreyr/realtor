@@ -1,7 +1,7 @@
 import React from 'react';
 import { YStack, XStack, Text, Button } from 'tamagui';
 
-export type TabType = 'dashboard' | 'settings' | 'admin';
+export type TabType = 'dashboard' | 'areas' | 'settings' | 'admin';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -20,6 +20,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const menuItems: { id: TabType; label: string; icon: string; adminOnly?: boolean }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+    { id: 'areas', label: 'Areas', icon: '🗺️' },
     { id: 'settings', label: 'Settings', icon: '⚙️' },
     { id: 'admin', label: 'Admin Panel', icon: '🔒', adminOnly: true },
   ];

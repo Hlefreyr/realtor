@@ -12,7 +12,7 @@ export interface UserAuthData {
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (user: UserAuthData) => void;
+  onSuccess: (user: UserAuthData, staySignedIn?: boolean) => void;
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({
@@ -22,6 +22,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [staySignedIn, setStaySignedIn] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const activeSubmissionRef = useRef(false);
@@ -45,12 +46,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
     // Direct instant check for pre-seeded demo/test accounts
     if (cleanEmail === 'admin@realtor.com' && targetPass === 'admin') {
-      onSuccess({
-        id: 'admin-id-123',
-        email: 'admin@realtor.com',
-        role: 'admin',
-        token: `mock-token-admin-${Date.now()}`,
-      });
+      onSuccess(
+        {
+          id: 'admin-id-123',
+          email: 'admin@realtor.com',
+          role: 'admin',
+          token: `mock-token-admin-${Date.now()}`,
+        },
+        staySignedIn
+      );
       activeSubmissionRef.current = false;
       setIsSubmitting(false);
       onClose();
@@ -58,12 +62,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
 
     if (cleanEmail === 'user@realtor.com' && targetPass === 'user') {
-      onSuccess({
-        id: 'user-id-456',
-        email: 'user@realtor.com',
-        role: 'user',
-        token: `mock-token-user-${Date.now()}`,
-      });
+      onSuccess(
+        {
+          id: 'user-id-456',
+          email: 'user@realtor.com',
+          role: 'user',
+          token: `mock-token-user-${Date.now()}`,
+        },
+        staySignedIn
+      );
       activeSubmissionRef.current = false;
       setIsSubmitting(false);
       onClose();
@@ -99,12 +106,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       }
 
       if (resData.data?.login) {
-        onSuccess({
-          id: resData.data.login.user.id,
-          email: resData.data.login.user.email,
-          role: resData.data.login.user.role as 'admin' | 'user',
-          token: resData.data.login.token,
-        });
+        onSuccess(
+          {
+            id: resData.data.login.user.id,
+            email: resData.data.login.user.email,
+            role: resData.data.login.user.role as 'admin' | 'user',
+            token: resData.data.login.token,
+          },
+          staySignedIn
+        );
         activeSubmissionRef.current = false;
         setIsSubmitting(false);
         onClose();
@@ -234,6 +244,46 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               fontSize={14}
             />
           </YStack>
+
+          {/* Stay Signed In Checkbox */}
+          <XStack
+            testID="login-stay-signed-in-container"
+            alignItems="center"
+            gap="$2.5"
+            marginTop="$1"
+            cursor="pointer"
+            onPress={() => setStaySignedIn(!staySignedIn)}
+          >
+            <Button
+              testID="login-stay-signed-in-checkbox"
+              size="$2"
+              width={20}
+              height={20}
+              padding={0}
+              borderRadius="$2"
+              backgroundColor={staySignedIn ? '#2563eb' : '#ffffff'}
+              borderColor={staySignedIn ? '#2563eb' : '#cbd5e1'}
+              borderWidth={1.5}
+              justifyContent="center"
+              alignItems="center"
+              onPress={() => setStaySignedIn(!staySignedIn)}
+            >
+              {staySignedIn && (
+                <Text pointerEvents="none" fontSize={12} color="#ffffff" fontWeight="800">
+                  ✓
+                </Text>
+              )}
+            </Button>
+            <Text
+              testID="login-stay-signed-in-label"
+              fontSize={13}
+              fontWeight="600"
+              color="#334155"
+              onPress={() => setStaySignedIn(!staySignedIn)}
+            >
+              Stay signed in
+            </Text>
+          </XStack>
         </YStack>
 
         {/* Submit Button */}

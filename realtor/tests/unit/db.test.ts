@@ -17,7 +17,7 @@ describe('Database Configuration Unit Tests', () => {
     const uri = 'mongodb://testuser:testpass@localhost:27017/realtor_test';
     const conn = await connectDB(uri);
 
-    expect(mongoose.connect).toHaveBeenCalledWith(uri, { serverSelectionTimeoutMS: 2000 });
+    expect(mongoose.connect).toHaveBeenCalledWith(uri, { serverSelectionTimeoutMS: 5000 });
     expect(conn).toBe(mongoose);
   });
 
@@ -28,7 +28,7 @@ describe('Database Configuration Unit Tests', () => {
 
     await connectDB();
     expect(mongoose.connect).toHaveBeenCalledWith('mongodb://localhost:27017/realtor', {
-      serverSelectionTimeoutMS: 2000,
+      serverSelectionTimeoutMS: 5000,
     });
 
     process.env.MONGO_URI = originalUri;

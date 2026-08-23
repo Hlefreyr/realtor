@@ -129,7 +129,9 @@ export const GoogleMapProvider: React.FC<MapProviderProps> = ({
     });
   }, [savedAreas, isApiLoaded]);
 
-  // Render Active Polyline
+  const activeMarkersRef = useRef<any[]>([]);
+
+  // Render Active Polyline and Vertex Markers
   useEffect(() => {
     const map = googleMapRef.current;
     if (!map || !(window as any).google?.maps) return;
@@ -139,6 +141,9 @@ export const GoogleMapProvider: React.FC<MapProviderProps> = ({
       activePolylineRef.current = null;
     }
 
+    activeMarkersRef.current.forEach((m) => m.setMap(null));
+    activeMarkersRef.current = [];
+
     if (currentPolygon.length > 0) {
       activePolylineRef.current = new (window as any).google.maps.Polyline({
         path: currentPolygon,
@@ -147,11 +152,28 @@ export const GoogleMapProvider: React.FC<MapProviderProps> = ({
         strokeWeight: 3,
         map: map,
       });
+
+      currentPolygon.forEach((pt) => {
+        const marker = new (window as any).google.maps.Marker({
+          position: pt,
+          map: map,
+          icon: {
+            path: (window as any).google.maps.SymbolPath.CIRCLE,
+            scale: 5,
+            fillColor: '#f59e0b',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+          },
+        });
+        activeMarkersRef.current.push(marker);
+      });
     }
   }, [currentPolygon, isApiLoaded]);
 
-  // Fallback Container Mouse Handlers for Web Canvas
+  // Fallback Container Mouse Handlers for Web Canvas when API is not available
   const handleContainerLeftClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isApiLoaded && googleMapRef.current) return;
     if (!isDrawing || !mapRef.current) return;
     const rect = mapRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -166,12 +188,14 @@ export const GoogleMapProvider: React.FC<MapProviderProps> = ({
 
   const handleContainerRightClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
+    if (isApiLoaded && googleMapRef.current) return;
     if (!isDrawing) return;
     onUndoPoint();
   };
 
   const handleContainerDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
+    if (isApiLoaded && googleMapRef.current) return;
     if (!isDrawing) return;
     onFinishDrawing();
   };

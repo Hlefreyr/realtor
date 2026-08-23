@@ -86,20 +86,36 @@ export const LeafletMapProvider: React.FC<MapProviderProps> = ({
           );
         })}
 
-        {/* Active Drawing Polyline */}
+        {/* Active Drawing Polyline & Vertex Markers */}
         {currentPolygon.length > 0 && (
-          <polyline
-            points={currentPolygon
-              .map((pt) => {
-                const { cx, cy } = getSvgCoords(pt);
-                return `${cx}%,${cy}%`;
-              })
-              .join(' ')}
-            fill="none"
-            stroke="#f59e0b"
-            strokeWidth="2.5"
-            strokeDasharray="5 5"
-          />
+          <g>
+            <polyline
+              points={currentPolygon
+                .map((pt) => {
+                  const { cx, cy } = getSvgCoords(pt);
+                  return `${cx}%,${cy}%`;
+                })
+                .join(' ')}
+              fill="none"
+              stroke="#f59e0b"
+              strokeWidth="2.5"
+              strokeDasharray="5 5"
+            />
+            {currentPolygon.map((pt, idx) => {
+              const { cx, cy } = getSvgCoords(pt);
+              return (
+                <circle
+                  key={idx}
+                  cx={`${cx}%`}
+                  cy={`${cy}%`}
+                  r="5"
+                  fill="#f59e0b"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                />
+              );
+            })}
+          </g>
         )}
       </svg>
 

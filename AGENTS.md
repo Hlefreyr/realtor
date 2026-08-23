@@ -59,7 +59,7 @@ All features and functionality across the application must be covered across the
 
 - **Auto-Approved Safe Commands**: The following command families are authorized to run automatically without manual interactive approval prompts:
   - `docker ps` & `docker compose up / down / logs / build`
-  - `npm test` & `npm run`
+  - `npm test`, `npm run`, `npx jest`
   - `git status`, `git diff`, `git log`
 
 

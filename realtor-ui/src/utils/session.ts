@@ -72,3 +72,26 @@ export const clearSession = (): void => {
     }
   }
 };
+
+export const PREF_STAY_SIGNED_IN_KEY = 'realtor_pref_stay_signed_in';
+
+export const getSavedStaySignedInPref = (): boolean => {
+  if (typeof window === 'undefined') return true;
+  try {
+    const val = window.localStorage?.getItem(PREF_STAY_SIGNED_IN_KEY);
+    if (val === 'false') return false;
+    return true;
+  } catch (err) {
+    return true;
+  }
+};
+
+export const saveStaySignedInPref = (staySignedIn: boolean): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage?.setItem(PREF_STAY_SIGNED_IN_KEY, String(staySignedIn));
+  } catch (err) {
+    console.error('Failed to save stay signed in preference:', err);
+  }
+};
+

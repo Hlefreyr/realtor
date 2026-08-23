@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { YStack, XStack, Text, Input, Button, Spinner } from 'tamagui';
 import { getGraphQLUri } from '../apollo/client';
+import { getSavedStaySignedInPref, saveStaySignedInPref } from '../utils/session';
 
 export interface UserAuthData {
   id: string;
@@ -22,10 +23,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [staySignedIn, setStaySignedIn] = useState(false);
+  const [staySignedIn, setStaySignedIn] = useState(() => getSavedStaySignedInPref());
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const activeSubmissionRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setStaySignedIn(getSavedStaySignedInPref());
+    }
+  }, [isOpen]);
+
+  const handleToggleStaySignedIn = (nextVal: boolean) => {
+    setStaySignedIn(nextVal);
+    saveStaySignedInPref(nextVal);
+  };
 
   if (!isOpen) return null;
 
@@ -132,6 +144,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     performLogin(email, password);
   };
 
+  const handleKeyDown = (e: any) => {
+    if (e.key === 'Enter' || e.nativeEvent?.key === 'Enter') {
+      handleSubmit();
+    }
+  };
+
   const fillQuickAcc = (quickEmail: string, quickPass: string) => {
     setEmail(quickEmail);
     setPassword(quickPass);
@@ -215,6 +233,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               value={email}
               onChangeText={setEmail}
               onChange={(e: any) => setEmail(e.target?.value || e.nativeEvent?.text || '')}
+              onKeyPress={handleKeyDown}
+              onSubmitEditing={handleSubmit}
               placeholder="user@realtor.com"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -235,6 +255,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               value={password}
               onChangeText={setPassword}
               onChange={(e: any) => setPassword(e.target?.value || e.nativeEvent?.text || '')}
+              onKeyPress={handleKeyDown}
+              onSubmitEditing={handleSubmit}
               placeholder="••••••••"
               secureTextEntry
               borderColor="#cbd5e1"
@@ -252,7 +274,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             gap="$2.5"
             marginTop="$1"
             cursor="pointer"
-            onPress={() => setStaySignedIn(!staySignedIn)}
+            onPress={() => handleToggleStaySignedIn(!staySignedIn)}
           >
             <Button
               testID="login-stay-signed-in-checkbox"
@@ -266,7 +288,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               borderWidth={1.5}
               justifyContent="center"
               alignItems="center"
-              onPress={() => setStaySignedIn(!staySignedIn)}
+              onPress={() => handleToggleStaySignedIn(!staySignedIn)}
             >
               {staySignedIn && (
                 <Text pointerEvents="none" fontSize={12} color="#ffffff" fontWeight="800">
@@ -279,7 +301,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               fontSize={13}
               fontWeight="600"
               color="#334155"
-              onPress={() => setStaySignedIn(!staySignedIn)}
+              onPress={() => handleToggleStaySignedIn(!staySignedIn)}
             >
               Stay signed in
             </Text>

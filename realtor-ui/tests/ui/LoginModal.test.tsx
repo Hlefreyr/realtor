@@ -15,6 +15,13 @@ const renderWithTamagui = (ui: React.ReactElement) => {
 describe('LoginModal UI Component Tests', () => {
   const originalFetch = global.fetch;
 
+  beforeEach(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage?.clear();
+      window.sessionStorage?.clear();
+    }
+  });
+
   afterEach(() => {
     global.fetch = originalFetch;
   });
@@ -52,15 +59,13 @@ describe('LoginModal UI Component Tests', () => {
 
   it('should toggle Stay signed in checkbox when clicked', () => {
     const mockSuccess = jest.fn();
-    const { getByTestId, getByText } = renderWithTamagui(
+    const { getByTestId } = renderWithTamagui(
       <LoginModal isOpen={true} onClose={jest.fn()} onSuccess={mockSuccess} />
     );
 
     const checkbox = getByTestId('login-stay-signed-in-checkbox');
-    const label = getByText('Stay signed in');
-
+    // Defaults to true, pressing checkbox toggles to false
     fireEvent.press(checkbox);
-    fireEvent.press(label);
 
     const quickUser = getByTestId('quick-user-button');
     fireEvent.press(quickUser);
@@ -69,6 +74,29 @@ describe('LoginModal UI Component Tests', () => {
       expect.objectContaining({ email: 'user@realtor.com' }),
       false
     );
+  });
+
+  it('should submit login when Enter key is pressed in password input', async () => {
+    const mockSuccess = jest.fn();
+    const mockClose = jest.fn();
+
+    const { getByTestId } = renderWithTamagui(
+      <LoginModal isOpen={true} onClose={mockClose} onSuccess={mockSuccess} />
+    );
+
+    fireEvent.changeText(getByTestId('login-email-input'), 'admin@realtor.com');
+    fireEvent.changeText(getByTestId('login-password-input'), 'admin');
+
+    const passwordInput = getByTestId('login-password-input');
+    fireEvent(passwordInput, 'keyPress', { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(mockSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'admin@realtor.com' }),
+        true
+      );
+      expect(mockClose).toHaveBeenCalled();
+    });
   });
 
   it('should populate quick demo admin and user credentials when quick buttons pressed', () => {
@@ -137,7 +165,6 @@ describe('LoginModal UI Component Tests', () => {
       <LoginModal isOpen={true} onClose={mockClose} onSuccess={mockSuccess} />
     );
 
-    fireEvent.press(getByTestId('login-stay-signed-in-checkbox'));
     fireEvent.changeText(getByTestId('login-email-input'), 'custom@realtor.com');
     fireEvent.changeText(getByTestId('login-password-input'), 'custompass');
     fireEvent.press(getByTestId('login-submit-button'));
@@ -177,7 +204,7 @@ describe('LoginModal UI Component Tests', () => {
           email: 'user@realtor.com',
           role: 'user',
         }),
-        false
+        true
       );
       expect(mockClose).toHaveBeenCalled();
     });
@@ -204,7 +231,7 @@ describe('LoginModal UI Component Tests', () => {
           email: 'admin@realtor.com',
           role: 'admin',
         }),
-        false
+        true
       );
       expect(mockClose).toHaveBeenCalled();
     });

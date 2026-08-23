@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { TamaguiProvider } from 'tamagui';
 import tamaguiConfig from '../../tamagui.config';
-import { AreasView } from '../../src/components/views/AreasView';
+import { AreasView, getUniqueAreaName } from '../../src/components/views/AreasView';
 
 const renderWithTamagui = (ui: React.ReactElement) => {
   return render(
@@ -46,14 +46,15 @@ describe('AreasView UI Component Tests', () => {
     },
   ];
 
-  it('renders property search areas title and Google Maps container', () => {
-    const { getByTestId, getByText } = renderWithTamagui(
+  it('renders property search areas title, Google Maps container, and no side panel', () => {
+    const { getByTestId, getByText, queryByTestId } = renderWithTamagui(
       <AreasView radius={50} unit="kilometers" savedAreas={mockSavedAreas} />
     );
 
     expect(getByText('Property Search Areas')).toBeTruthy();
     expect(getByTestId('google-maps-container')).toBeTruthy();
     expect(getByTestId('new-area-button')).toBeTruthy();
+    expect(queryByTestId('saved-areas-panel')).toBeNull();
   });
 
   it('toggles to drawing mode and updates button label to Finish', () => {
@@ -65,20 +66,42 @@ describe('AreasView UI Component Tests', () => {
     expect(getByTestId('finish-area-button')).toBeTruthy();
     expect(getByTestId('drawing-mode-banner')).toBeTruthy();
     expect(getByText('Area Selection Mode:')).toBeTruthy();
-    expect(getByTestId('area-name-input')).toBeTruthy();
   });
 
-  it('calls onDeleteArea when delete button pressed for saved area', async () => {
+  it('correctly calculates unique area names with getUniqueAreaName helper', () => {
+    const existing = [
+      { id: '1', name: 'Untitled', polygon: [] },
+      { id: '2', name: 'Untitled 1', polygon: [] },
+      { id: '3', name: 'West End', polygon: [] },
+    ];
+
+    expect(getUniqueAreaName('Downtown', existing)).toBe('Downtown');
+    expect(getUniqueAreaName('Untitled', existing)).toBe('Untitled 2');
+    expect(getUniqueAreaName('West End', existing)).toBe('West End 1');
+  });
+
+  it('displays Delete Area button when an area is selected and handles deletion', async () => {
     const mockDelete = jest.fn();
-    const { getByTestId } = renderWithTamagui(
-      <AreasView savedAreas={mockSavedAreas} onDeleteArea={mockDelete} />
+    const mockSelectArea = jest.fn();
+
+    const { getByTestId, queryByTestId, getByText } = renderWithTamagui(
+      <AreasView
+        savedAreas={mockSavedAreas}
+        selectedAreaId="area-1"
+        onSelectArea={mockSelectArea}
+        onDeleteArea={mockDelete}
+      />
     );
 
-    const deleteBtn = getByTestId('delete-area-area-1');
-    fireEvent.press(deleteBtn);
+    expect(getByText('Area: Downtown Commercial')).toBeTruthy();
+    expect(queryByTestId('new-area-button')).toBeNull();
+    expect(getByTestId('delete-area-button')).toBeTruthy();
+
+    fireEvent.press(getByTestId('delete-area-button'));
 
     await waitFor(() => {
       expect(mockDelete).toHaveBeenCalledWith('area-1');
+      expect(mockSelectArea).toHaveBeenCalledWith(null);
     });
   });
 });

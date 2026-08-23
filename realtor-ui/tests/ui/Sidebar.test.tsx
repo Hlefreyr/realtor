@@ -101,4 +101,35 @@ describe('Sidebar UI Component Tests', () => {
 
     expect(mockSelectTab).toHaveBeenCalledWith('settings');
   });
+
+  it('should render nested sub-items under Areas when savedAreas provided', () => {
+    const mockSelectTab = jest.fn();
+    const mockSelectArea = jest.fn();
+    const savedAreas = [
+      { id: 'area-1', name: 'Downtown', polygon: [] },
+      { id: 'area-2', name: 'West Side', polygon: [] },
+    ];
+
+    const { getByTestId, getByText } = renderWithTamagui(
+      <Sidebar
+        activeTab="areas"
+        onSelectTab={mockSelectTab}
+        userRole="user"
+        isCollapsed={false}
+        onToggleCollapse={jest.fn()}
+        savedAreas={savedAreas}
+        selectedAreaId="area-1"
+        onSelectArea={mockSelectArea}
+      />
+    );
+
+    expect(getByTestId('sidebar-subitem-area-1')).toBeTruthy();
+    expect(getByTestId('sidebar-subitem-area-2')).toBeTruthy();
+    expect(getByText('Downtown')).toBeTruthy();
+    expect(getByText('West Side')).toBeTruthy();
+
+    fireEvent.press(getByTestId('sidebar-subitem-area-2'));
+    expect(mockSelectTab).toHaveBeenCalledWith('areas');
+    expect(mockSelectArea).toHaveBeenCalledWith('area-2');
+  });
 });

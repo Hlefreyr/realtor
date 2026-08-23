@@ -15,6 +15,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
 
   const [settings, setSettings] = useState<{ unit: 'kilometers' | 'miles'; radius: number }>({
     unit: 'kilometers',
@@ -38,6 +39,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   };
 
   const handleDeleteArea = (id: string) => {
+    if (selectedAreaId === id) {
+      setSelectedAreaId(null);
+    }
     setSavedAreas((prev) => prev.filter((a) => a.id !== id));
   };
 
@@ -49,6 +53,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             unit={settings.unit}
             radius={settings.radius}
             savedAreas={savedAreas}
+            selectedAreaId={selectedAreaId}
+            onSelectArea={setSelectedAreaId}
             onSaveArea={handleSaveArea}
             onDeleteArea={handleDeleteArea}
           />
@@ -74,15 +80,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       {/* Floating Collapsible Left Sidebar */}
       <Sidebar
         activeTab={activeTab}
-        onSelectTab={setActiveTab}
+        onSelectTab={(tab) => {
+          setActiveTab(tab);
+          if (tab !== 'areas') {
+            setSelectedAreaId(null);
+          }
+        }}
         userRole={userRole}
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        savedAreas={savedAreas}
+        selectedAreaId={selectedAreaId}
+        onSelectArea={setSelectedAreaId}
       />
 
       {/* Main Viewport Content Area */}
-      <YStack flex={1} backgroundColor="#f8fafc" padding="$5">
-        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}>
+      <YStack flex={1} backgroundColor="#f8fafc" padding="$5" height="100%">
+        <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }} style={{ height: '100%' }}>
           {renderActiveView()}
         </ScrollView>
       </YStack>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { YStack, XStack, Text, Button } from 'tamagui';
+import { SavedArea } from '../services/map/MapProviderInterface';
 
 export type TabType = 'dashboard' | 'areas' | 'settings' | 'admin';
 
@@ -9,6 +10,9 @@ interface SidebarProps {
   userRole: 'admin' | 'user';
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  savedAreas?: SavedArea[];
+  selectedAreaId?: string | null;
+  onSelectArea?: (areaId: string | null) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -17,6 +21,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   userRole,
   isCollapsed,
   onToggleCollapse,
+  savedAreas = [],
+  selectedAreaId = null,
+  onSelectArea,
 }) => {
   const menuItems: { id: TabType; label: string; icon: string; adminOnly?: boolean }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -28,6 +35,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const visibleItems = menuItems.filter(
     (item) => !item.adminOnly || userRole === 'admin'
   );
+
+  const handleMainItemPress = (itemId: TabType) => {
+    onSelectTab(itemId);
+    if (itemId === 'areas' && onSelectArea) {
+      onSelectArea(null);
+    }
+  };
+
+  const handleSubItemPress = (areaId: string) => {
+    onSelectTab('areas');
+    if (onSelectArea) {
+      onSelectArea(areaId);
+    }
+  };
 
   return (
     <YStack
@@ -81,35 +102,75 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Navigation Items List */}
       <YStack gap="$2" width="100%">
         {visibleItems.map((item) => {
-          const isActive = activeTab === item.id;
+          const isMainActive = activeTab === item.id && (item.id !== 'areas' || selectedAreaId === null);
 
           return (
-            <Button
-              key={item.id}
-              testID={`sidebar-item-${item.id}`}
-              onPress={() => onSelectTab(item.id)}
-              backgroundColor={isActive ? '#2563eb' : 'transparent'}
-              hoverStyle={{
-                backgroundColor: isActive ? '#1d4ed8' : '#334155',
-              }}
-              justifyContent={isCollapsed ? 'center' : 'flex-start'}
-              paddingHorizontal={isCollapsed ? "$2" : "$3.5"}
-              height={44}
-              borderRadius="$4"
-            >
-              <XStack alignItems="center" gap="$3">
-                <Text fontSize={18}>{item.icon}</Text>
-                {!isCollapsed && (
-                  <Text
-                    color={isActive ? '#ffffff' : '#cbd5e1'}
-                    fontWeight={isActive ? '700' : '500'}
-                    fontSize={14}
-                  >
-                    {item.label}
-                  </Text>
-                )}
-              </XStack>
-            </Button>
+            <YStack key={item.id} gap="$1" width="100%">
+              <Button
+                testID={`sidebar-item-${item.id}`}
+                onPress={() => handleMainItemPress(item.id)}
+                backgroundColor={isMainActive ? '#2563eb' : 'transparent'}
+                hoverStyle={{
+                  backgroundColor: isMainActive ? '#1d4ed8' : '#334155',
+                }}
+                justifyContent={isCollapsed ? 'center' : 'flex-start'}
+                paddingHorizontal={isCollapsed ? "$2" : "$3.5"}
+                height={44}
+                borderRadius="$4"
+              >
+                <XStack alignItems="center" gap="$3">
+                  <Text fontSize={18}>{item.icon}</Text>
+                  {!isCollapsed && (
+                    <Text
+                      color={isMainActive ? '#ffffff' : '#cbd5e1'}
+                      fontWeight={isMainActive ? '700' : '500'}
+                      fontSize={14}
+                    >
+                      {item.label}
+                    </Text>
+                  )}
+                </XStack>
+              </Button>
+
+              {/* Sub-items for Areas */}
+              {item.id === 'areas' && !isCollapsed && savedAreas.length > 0 && (
+                <YStack gap="$1" paddingLeft="$4" width="100%">
+                  {savedAreas.map((area) => {
+                    const isSubActive = activeTab === 'areas' && selectedAreaId === area.id;
+                    return (
+                      <Button
+                        key={area.id}
+                        testID={`sidebar-subitem-${area.id}`}
+                        onPress={() => handleSubItemPress(area.id)}
+                        backgroundColor={isSubActive ? '#3b82f6' : 'transparent'}
+                        hoverStyle={{
+                          backgroundColor: isSubActive ? '#2563eb' : '#334155',
+                        }}
+                        justifyContent="flex-start"
+                        paddingHorizontal="$3"
+                        height={36}
+                        borderRadius="$3"
+                      >
+                        <XStack alignItems="center" gap="$2">
+                          <Text fontSize={12} color={isSubActive ? '#ffffff' : '#94a3b8'}>
+                            📍
+                          </Text>
+                          <Text
+                            color={isSubActive ? '#ffffff' : '#cbd5e1'}
+                            fontWeight={isSubActive ? '700' : '400'}
+                            fontSize={13}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {area.name}
+                          </Text>
+                        </XStack>
+                      </Button>
+                    );
+                  })}
+                </YStack>
+              )}
+            </YStack>
           );
         })}
       </YStack>
@@ -118,3 +179,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export default Sidebar;
+

@@ -1,0 +1,28 @@
+Integration with Real-Time Real Estate Data API.
+
+Settings Page.
+Under Settings page, create a section "Search criteria".
+Include criteria from Product/real-time-real-estate-data-api-report.md - Section Supported Filter Criteria & Parameters - items 2, 3
+If user specifies some criteria, save them to DB.
+
+Individual Area pages:
+Add "Search" button in the upper-right corner on the same level as "Delete" button.
+Upon clicking, button should turn to "Searching" displaying spinning circle.
+The search should be done using search-polygon of the area and filters.
+Use the same service provider patter as I might want to swithc source api later.
+Save the results of the call to the "Properties" array property of the Area object in Mongo.
+It should be overwritten every time search is executed.
+When search is done, button should revert back to "Search".
+When search is done, total number of properties found should be displayed on the right of the search button.
+Found properties should be displayed as small grey "house" icons on the map.
+Add collapsible "Details" panel on the right. Default state is collapsed, there should be a control to collapse / expand the panel.
+When user clicks on any property icon on the map, the Details section should display details of the property. Raw JSON for now. If panel is collapsed when user clicked the button, it should automatically expand.
+Details section should have empty map-pin-search icon on the top-right. When clicked:
+Icon should turn to filled yellow-gold map-pin-search. Corresponding house icon on the map should turn yellow-gold. The property should be transferred to the "Pre candidate Properties" array property of the Area object. Which means that the map should display properties from both Properties and Pre-Candidate properties arrays.
+
+Remember that this API has a strict 100 calls per month limit.
+For this work, you are allowed to execute only 1 real call to the API, even it results in error.
+Use Sample Area I have created.
+Save the results of the call to the "Sample Data" object in Mongo. Use Mongo convention to name the object.
+
+

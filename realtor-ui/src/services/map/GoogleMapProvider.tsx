@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MapProviderProps } from './MapProviderInterface';
+import { MapProviderProps, PropertyListing } from './MapProviderInterface';
 
 export const GoogleMapProvider: React.FC<MapProviderProps> = ({
   center,
@@ -12,11 +12,13 @@ export const GoogleMapProvider: React.FC<MapProviderProps> = ({
   onAddPoint,
   onUndoPoint,
   onFinishDrawing,
+  onPropertyMarkerClick,
 }) => {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const googleMapRef = useRef<any>(null);
   const savedPolygonsRef = useRef<any[]>([]);
   const activePolylineRef = useRef<any>(null);
+  const propertyMarkersRef = useRef<any[]>([]);
   const [isApiLoaded, setIsApiLoaded] = useState(false);
 
   // Dynamic Google Maps JS API Loader
@@ -105,7 +107,7 @@ export const GoogleMapProvider: React.FC<MapProviderProps> = ({
     };
   }, [isApiLoaded, onAddPoint, onUndoPoint, onFinishDrawing]);
 
-  // Render Saved Polygons
+  // Render Saved Polygons and Property Markers
   useEffect(() => {
     const map = googleMapRef.current;
     if (!map || !(window as any).google?.maps) return;
@@ -113,7 +115,11 @@ export const GoogleMapProvider: React.FC<MapProviderProps> = ({
     savedPolygonsRef.current.forEach((poly) => poly.setMap(null));
     savedPolygonsRef.current = [];
 
+    propertyMarkersRef.current.forEach((m) => m.setMap(null));
+    propertyMarkersRef.current = [];
+
     savedAreas.forEach((area) => {
+      // Polygons
       if (area.polygon && area.polygon.length >= 3) {
         const poly = new (window as any).google.maps.Polygon({
           paths: area.polygon,
@@ -126,8 +132,81 @@ export const GoogleMapProvider: React.FC<MapProviderProps> = ({
         });
         savedPolygonsRef.current.push(poly);
       }
+
+      const HOUSE_SVG_PATH = 'M -2 8 L -2 2 L 2 2 L 2 8 L 7 8 L 7 0 L 10 0 L 0 -9 L -10 0 L -7 0 L -7 8 Z';
+
+      // Search Listings (Grey House Markers)
+      (area.properties || []).forEach((prop) => {
+        const marker = new (window as any).google.maps.Marker({
+          position: { lat: prop.location.latitude, lng: prop.location.longitude },
+          map: map,
+          title: `$${prop.price.toLocaleString()} - ${prop.address.streetAddress}`,
+          icon: {
+            path: HOUSE_SVG_PATH,
+            scale: 1.2,
+            fillColor: '#64748b',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 1.5,
+          },
+        });
+
+        const infoWindow = new (window as any).google.maps.InfoWindow({
+          content: `
+            <div style="color: #0f172a; font-family: sans-serif; padding: 4px;">
+              <div style="font-weight: bold; color: #10b981; font-size: 14px;">$${prop.price.toLocaleString()} ${prop.currency || 'CAD'}</div>
+              <div style="font-size: 12px; color: #475569;">${prop.bedrooms || '-'} bds | ${prop.bathrooms || '-'} ba | ${prop.livingArea || '-'} sqft</div>
+              <div style="font-size: 11px; color: #64748b;">${prop.address.streetAddress}</div>
+            </div>
+          `,
+        });
+
+        marker.addListener('click', () => {
+          infoWindow.open(map, marker);
+          if (onPropertyMarkerClick) {
+            onPropertyMarkerClick(prop, area.id);
+          }
+        });
+
+        propertyMarkersRef.current.push(marker);
+      });
+
+      // Candidate Properties (Yellow-Gold House Markers)
+      const candList = area.candidateProperties || area.preCandidateProperties || [];
+      candList.forEach((prop) => {
+        const marker = new (window as any).google.maps.Marker({
+          position: { lat: prop.location.latitude, lng: prop.location.longitude },
+          map: map,
+          title: `CANDIDATE: $${prop.price.toLocaleString()} - ${prop.address.streetAddress}`,
+          icon: {
+            path: HOUSE_SVG_PATH,
+            scale: 1.2,
+            fillColor: '#f59e0b',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 1.5,
+          },
+        });
+
+        const infoWindow = new (window as any).google.maps.InfoWindow({
+          content: `
+            <div style="color: #0f172a; font-family: sans-serif; padding: 4px;">
+              <div style="font-weight: bold; color: #f59e0b; font-size: 13px;">🏠 CANDIDATE PROPERTY</div>
+              <div style="font-weight: bold; color: #10b981; font-size: 14px;">$${prop.price.toLocaleString()} ${prop.currency || 'CAD'}</div>
+              <div style="font-size: 12px; color: #475569;">${prop.bedrooms || '-'} bds | ${prop.bathrooms || '-'} ba | ${prop.livingArea || '-'} sqft</div>
+              <div style="font-size: 11px; color: #64748b;">${prop.address.streetAddress}</div>
+            </div>
+          `,
+        });
+
+        marker.addListener('click', () => {
+          infoWindow.open(map, marker);
+        });
+
+        propertyMarkersRef.current.push(marker);
+      });
     });
-  }, [savedAreas, isApiLoaded]);
+  }, [savedAreas, isApiLoaded, onPropertyMarkerClick]);
 
   const activeMarkersRef = useRef<any[]>([]);
 

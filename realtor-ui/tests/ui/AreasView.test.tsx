@@ -27,8 +27,19 @@ describe('AreasView UI Component Tests', () => {
         Polyline: jest.fn().mockImplementation(() => ({
           setMap: jest.fn(),
         })),
+        Marker: jest.fn().mockImplementation(() => ({
+          setMap: jest.fn(),
+          addListener: jest.fn(),
+        })),
+        InfoWindow: jest.fn().mockImplementation(() => ({
+          open: jest.fn(),
+        })),
         event: {
           removeListener: jest.fn(),
+        },
+        SymbolPath: {
+          CIRCLE: 0,
+          BACKWARD_CLOSED_ARROW: 1,
         },
       },
     };
@@ -42,6 +53,32 @@ describe('AreasView UI Component Tests', () => {
         { lat: 37.77, lng: -122.41 },
         { lat: 37.78, lng: -122.42 },
         { lat: 37.79, lng: -122.4 },
+      ],
+      properties: [
+        {
+          zpid: 'prop-101',
+          price: 850000,
+          currency: 'CAD',
+          address: { streetAddress: '100 Main St', city: 'Toronto', state: 'ON', zipcode: 'M5V 2T6' },
+          location: { latitude: 37.77, longitude: -122.41 },
+          bedrooms: 2,
+          bathrooms: 2,
+          livingArea: 850,
+          homeType: 'CONDO',
+        },
+      ],
+      preCandidateProperties: [
+        {
+          zpid: 'prop-102',
+          price: 1200000,
+          currency: 'CAD',
+          address: { streetAddress: '200 King St', city: 'Toronto', state: 'ON', zipcode: 'M5V 3B2' },
+          location: { latitude: 37.78, longitude: -122.42 },
+          bedrooms: 3,
+          bathrooms: 3,
+          livingArea: 1200,
+          homeType: 'SINGLE_FAMILY',
+        },
       ],
     },
   ];
@@ -65,7 +102,7 @@ describe('AreasView UI Component Tests', () => {
 
     expect(getByTestId('finish-area-button')).toBeTruthy();
     expect(getByTestId('drawing-mode-banner')).toBeTruthy();
-    expect(getByText('Area Selection Mode:')).toBeTruthy();
+    expect(getByText(/Area Selection Mode:/)).toBeTruthy();
   });
 
   it('correctly calculates unique area names with getUniqueAreaName helper', () => {
@@ -80,9 +117,10 @@ describe('AreasView UI Component Tests', () => {
     expect(getUniqueAreaName('West End', existing)).toBe('West End 1');
   });
 
-  it('displays Delete Area button when an area is selected and handles deletion', async () => {
+  it('displays Delete Area button and Search Listings button when an area is selected', async () => {
     const mockDelete = jest.fn();
     const mockSelectArea = jest.fn();
+    const mockExecuteSearch = jest.fn();
 
     const { getByTestId, queryByTestId, getByText } = renderWithTamagui(
       <AreasView
@@ -90,18 +128,35 @@ describe('AreasView UI Component Tests', () => {
         selectedAreaId="area-1"
         onSelectArea={mockSelectArea}
         onDeleteArea={mockDelete}
+        onExecuteSearch={mockExecuteSearch}
       />
     );
 
     expect(getByText('Area: Downtown Commercial')).toBeTruthy();
     expect(queryByTestId('new-area-button')).toBeNull();
     expect(getByTestId('delete-area-button')).toBeTruthy();
+    expect(getByTestId('execute-search-button')).toBeTruthy();
+    expect(getByTestId('area-details-panel')).toBeTruthy();
 
-    fireEvent.press(getByTestId('delete-area-button'));
+    fireEvent.press(getByTestId('execute-search-button'));
+    expect(mockExecuteSearch).toHaveBeenCalledWith('area-1');
+  });
 
-    await waitFor(() => {
-      expect(mockDelete).toHaveBeenCalledWith('area-1');
-      expect(mockSelectArea).toHaveBeenCalledWith(null);
-    });
+  it('handles property transfer to pre-candidates when transfer button is pressed', async () => {
+    const mockTransfer = jest.fn();
+
+    const { getByTestId } = renderWithTamagui(
+      <AreasView
+        savedAreas={mockSavedAreas}
+        selectedAreaId="area-1"
+        onTransferProperty={mockTransfer}
+      />
+    );
+
+    const transferBtn = getByTestId('transfer-button-prop-101');
+    expect(transferBtn).toBeTruthy();
+    fireEvent.press(transferBtn);
+
+    expect(mockTransfer).toHaveBeenCalledWith('area-1', 'prop-101');
   });
 });

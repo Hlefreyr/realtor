@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import { User, hashUserPassword } from '../../src/models/User';
+import { Areas } from '../../src/models/Areas';
 import { seedUsers } from '../../src/seed';
 import { resolvers } from '../../src/schema/resolvers';
 
@@ -8,6 +9,7 @@ describe('Authentication & User Model Unit Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(User, 'findOne').mockResolvedValue(null);
+    jest.spyOn(Areas, 'find').mockResolvedValue([]);
   });
 
   describe('User Model & Password Hashing', () => {

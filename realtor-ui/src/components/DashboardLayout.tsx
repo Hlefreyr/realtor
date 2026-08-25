@@ -45,6 +45,80 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     setSavedAreas((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const handleExecuteSearch = async (areaId: string): Promise<SavedArea | void> => {
+    const target = savedAreas.find((a) => a.id === areaId);
+    if (!target) return;
+
+    const polyCenter = target.polygon[0] || { lat: 43.6492, lng: -79.3838 };
+
+    const sampleListings = [
+      {
+        zpid: `prop-dash-${Date.now()}-1`,
+        price: 850000,
+        currency: 'CAD',
+        address: { streetAddress: '290 Bremner Blvd Unit 1402', city: 'Toronto', state: 'ON', zipcode: 'M5V 3L9', country: 'CA' },
+        location: { latitude: polyCenter.lat, longitude: polyCenter.lng },
+        bedrooms: 2,
+        bathrooms: 2,
+        livingArea: 880,
+        homeType: 'CONDO',
+        homeStatus: 'FOR_SALE',
+      },
+      {
+        zpid: `prop-dash-${Date.now()}-2`,
+        price: 1250000,
+        currency: 'CAD',
+        address: { streetAddress: '88 Harbour St Unit 2204', city: 'Toronto', state: 'ON', zipcode: 'M5J 0B7', country: 'CA' },
+        location: { latitude: polyCenter.lat + 0.003, longitude: polyCenter.lng + 0.003 },
+        bedrooms: 3,
+        bathrooms: 2.5,
+        livingArea: 1240,
+        homeType: 'CONDO',
+        homeStatus: 'FOR_SALE',
+      },
+      {
+        zpid: `prop-dash-${Date.now()}-3`,
+        price: 699000,
+        currency: 'CAD',
+        address: { streetAddress: '55 Mercer St Unit 809', city: 'Toronto', state: 'ON', zipcode: 'M5V 0H3', country: 'CA' },
+        location: { latitude: polyCenter.lat - 0.003, longitude: polyCenter.lng - 0.003 },
+        bedrooms: 1,
+        bathrooms: 1,
+        livingArea: 590,
+        homeType: 'CONDO',
+        homeStatus: 'FOR_SALE',
+      },
+    ];
+
+    const updatedArea: SavedArea = {
+      ...target,
+      properties: sampleListings,
+    };
+
+    setSavedAreas((prev) => prev.map((a) => (a.id === areaId ? updatedArea : a)));
+    return updatedArea;
+  };
+
+  const handleTransferProperty = async (areaId: string, zpid: string): Promise<SavedArea | void> => {
+    const target = savedAreas.find((a) => a.id === areaId);
+    if (!target) return;
+
+    const currentProps = target.properties || [];
+    const currentCandidates = target.candidateProperties || target.preCandidateProperties || [];
+    const targetProp = currentProps.find((p) => p.zpid === zpid);
+
+    if (!targetProp) return;
+
+    const updatedArea: SavedArea = {
+      ...target,
+      properties: currentProps.filter((p) => p.zpid !== zpid),
+      candidateProperties: [...currentCandidates, targetProp],
+    };
+
+    setSavedAreas((prev) => prev.map((a) => (a.id === areaId ? updatedArea : a)));
+    return updatedArea;
+  };
+
   const renderActiveView = () => {
     switch (activeTab) {
       case 'areas':
@@ -57,6 +131,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             onSelectArea={setSelectedAreaId}
             onSaveArea={handleSaveArea}
             onDeleteArea={handleDeleteArea}
+            onExecuteSearch={handleExecuteSearch}
+            onTransferProperty={handleTransferProperty}
           />
         );
       case 'settings':

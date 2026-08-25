@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { MapProviderProps } from './MapProviderInterface';
+import React, { useRef, useState } from 'react';
+import { MapProviderProps, PropertyListing } from './MapProviderInterface';
 
 export const LeafletMapProvider: React.FC<MapProviderProps> = ({
   center,
@@ -12,8 +12,16 @@ export const LeafletMapProvider: React.FC<MapProviderProps> = ({
   onAddPoint,
   onUndoPoint,
   onFinishDrawing,
+  onPropertyMarkerClick,
 }) => {
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const [activeTooltip, setActiveTooltip] = useState<{
+    property: PropertyListing;
+    areaId: string;
+    isPreCandidate: boolean;
+    cx: number;
+    cy: number;
+  } | null>(null);
 
   const scaleFactor = Math.pow(2, 14 - zoom) * 0.05;
 
@@ -79,7 +87,7 @@ export const LeafletMapProvider: React.FC<MapProviderProps> = ({
             <polygon
               key={area.id || idx}
               points={pointsSvg}
-              fill="rgba(16, 185, 129, 0.35)"
+              fill="rgba(16, 185, 129, 0.25)"
               stroke="#10b981"
               strokeWidth="2.5"
             />
@@ -117,7 +125,143 @@ export const LeafletMapProvider: React.FC<MapProviderProps> = ({
             })}
           </g>
         )}
+
+        {/* Property Markers (Grey = Candidate, Yellow-Gold = Pre-Candidate) */}
+        {savedAreas.map((area) => (
+          <g key={`markers-${area.id}`}>
+            {/* Standard Candidate Properties (Grey Markers) */}
+            {(area.properties || []).map((prop) => {
+              const { cx, cy } = getSvgCoords({
+                lat: prop.location.latitude,
+                lng: prop.location.longitude,
+              });
+              return (
+                <svg
+                  key={`prop-${prop.zpid}`}
+                  x={`calc(${cx}% - 12px)`}
+                  y={`calc(${cy}% - 12px)`}
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  style={{ cursor: 'pointer', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onPropertyMarkerClick) {
+                      onPropertyMarkerClick(prop, area.id);
+                    }
+                    setActiveTooltip({ property: prop, areaId: area.id, isPreCandidate: false, cx, cy });
+                  }}
+                >
+                  <path
+                    d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"
+                    fill="#64748b"
+                    stroke="#ffffff"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              );
+            })}
+
+            {/* Candidate/Pre-Candidate Properties (Yellow-Gold House Markers) */}
+            {(area.candidateProperties || area.preCandidateProperties || []).map((prop) => {
+              const { cx, cy } = getSvgCoords({
+                lat: prop.location.latitude,
+                lng: prop.location.longitude,
+              });
+              return (
+                <svg
+                  key={`preprop-${prop.zpid}`}
+                  x={`calc(${cx}% - 12px)`}
+                  y={`calc(${cy}% - 12px)`}
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  style={{ cursor: 'pointer', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTooltip({ property: prop, areaId: area.id, isPreCandidate: true, cx, cy });
+                  }}
+                >
+                  <path
+                    d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"
+                    fill="#f59e0b"
+                    stroke="#ffffff"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              );
+            })}
+          </g>
+        ))}
       </svg>
+
+      {/* Property Marker Tooltip */}
+      {activeTooltip && (
+        <div
+          testID="property-marker-tooltip"
+          style={{
+            position: 'absolute',
+            left: `${activeTooltip.cx}%`,
+            top: `${activeTooltip.cy}%`,
+            transform: 'translate(-50%, -115%)',
+            backgroundColor: '#0f172a',
+            color: '#ffffff',
+            padding: '10px 14px',
+            borderRadius: 8,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            zIndex: 100,
+            minWidth: 200,
+            border: '1px solid #334155',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: activeTooltip.isPreCandidate ? '#fbbf24' : '#94a3b8' }}>
+              {activeTooltip.isPreCandidate ? '🏠 Candidate Property' : '🏠 Search Listing'}
+            </span>
+            <button
+              onClick={() => setActiveTooltip(null)}
+              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              ✕
+            </button>
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#10b981' }}>
+            ${activeTooltip.property.price.toLocaleString()} {activeTooltip.property.currency || 'CAD'}
+          </div>
+          <div style={{ fontSize: 12, color: '#cbd5e1', marginTop: 2 }}>
+            {activeTooltip.property.bedrooms || '-'} bds | {activeTooltip.property.bathrooms || '-'} ba | {activeTooltip.property.livingArea || '-'} sqft
+          </div>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+            {activeTooltip.property.address.streetAddress}, {activeTooltip.property.address.city}
+          </div>
+
+          {!activeTooltip.isPreCandidate && onPropertyMarkerClick && (
+            <button
+              testID="transfer-pre-candidate-tooltip-button"
+              onClick={() => {
+                onPropertyMarkerClick(activeTooltip.property, activeTooltip.areaId);
+                setActiveTooltip(null);
+              }}
+              style={{
+                marginTop: 8,
+                width: '100%',
+                backgroundColor: '#f59e0b',
+                color: '#ffffff',
+                border: 'none',
+                padding: '6px 10px',
+                borderRadius: 6,
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: 'pointer',
+              }}
+            >
+              🏠 Move to Candidate Properties
+            </button>
+          )}
+        </div>
+      )}
 
       <div
         style={{

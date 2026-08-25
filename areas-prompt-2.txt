@@ -1,0 +1,6 @@
+Areas changes.
+Remove "Saved search areas" section.
+Make the map stretch to the all available visible area on the page (resiing if window size is changed).
+Area will have a name. Popup asking for the name default Untitled. If area with the same name exists under user profile, add " 1" to the end (" 2", " 3" etc)
+Once area is saved, it becomes a sub-item under "Areas" item in the menu. Clicking on the subitem "Area 123" displays the same page as "Areas" but with only selected area drawn on map. Replace "New area with "Delete Area". Clicking on this button removes area from DB and returns to "Areas" page.
+"Areas" page showd draw all areas on the map.

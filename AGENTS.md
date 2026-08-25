@@ -53,13 +53,3 @@ All features and functionality across the application must be covered across the
 
 - **Autosave Standard**: All text input fields across the user interface should automatically save when the user stops typing (debounced autosave).
 
----
-
-## 5. Granular Terminal Command Permissions
-
-- **Auto-Approved Safe Commands**: The following command families are authorized to run automatically without manual interactive approval prompts:
-  - `docker ps` & `docker compose up / down / logs / build`
-  - `npm test`, `npm run`, `npx jest`
-  - `git status`, `git diff`, `git log`
-
-

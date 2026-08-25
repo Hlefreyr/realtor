@@ -1,10 +1,20 @@
 import { resolvers } from '../../src/schema/resolvers';
 import { User } from '../../src/models/User';
+import { Areas } from '../../src/models/Areas';
+import { PropertyData } from '../../src/models/PropertyData';
 
 describe('GraphQL Resolvers Unit Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(User, 'findOne').mockResolvedValue(null);
+    jest.spyOn(PropertyData, 'findOne').mockResolvedValue(null);
+    jest.spyOn(PropertyData, 'findOneAndUpdate').mockResolvedValue(null as any);
+    jest.spyOn(Areas, 'find').mockResolvedValue([]);
+    jest.spyOn(Areas, 'findOne').mockResolvedValue(null);
+    jest.spyOn(Areas, 'deleteOne').mockResolvedValue({ acknowledged: true, deletedCount: 1 });
+    jest.spyOn(Areas.prototype, 'save').mockImplementation(function (this: any) {
+      return Promise.resolve(this);
+    });
   });
 
   describe('Query.hello', () => {
@@ -311,6 +321,121 @@ describe('GraphQL Resolvers Unit Tests', () => {
         password: 'password',
       });
       expect(res.user.id).toBe('user123');
+    });
+  });
+
+  describe('Mutation.updateSearchCriteria', () => {
+    it('should update search criteria in DB if user is found', async () => {
+      const mockUser = {
+        email: 'user@realtor.com',
+        settings: { searchCriteria: {} },
+        save: jest.fn().mockResolvedValue(true),
+      };
+      jest.spyOn(User, 'findOne').mockResolvedValue(mockUser as any);
+
+      const criteria = await resolvers.Mutation.updateSearchCriteria(
+        null,
+        { input: { priceMin: 500000, priceMax: 1500000 } },
+        { token: 'mock-token-user-123' }
+      );
+      expect(mockUser.save).toHaveBeenCalled();
+      expect(criteria.priceMin).toBe(500000);
+    });
+
+    it('should fallback to in-memory store if DB query fails in updateSearchCriteria', async () => {
+      jest.spyOn(User, 'findOne').mockRejectedValue(new Error('DB Error'));
+      const criteria = await resolvers.Mutation.updateSearchCriteria(
+        null,
+        { input: { priceMax: 900000 } },
+        { token: 'mock-token-user-123' }
+      );
+      expect(criteria.priceMax).toBe(900000);
+    });
+  });
+
+  describe('Mutation.executeAreaSearch & property transfers', () => {
+    it('should execute area search for user saved target and fallback area', async () => {
+      const mockAreaDoc = {
+        id: 'target-db-area',
+        properties: [],
+        polygon: [{ lat: 43.65, lng: -79.38 }, { lat: 43.66, lng: -79.39 }, { lat: 43.67, lng: -79.40 }],
+        save: jest.fn().mockResolvedValue(true),
+      };
+      jest.spyOn(Areas, 'findOne').mockResolvedValue(mockAreaDoc as any);
+
+      const dbAreaRes = await resolvers.Mutation.executeAreaSearch(
+        null,
+        { areaId: 'target-db-area' },
+        { token: 'mock-token-user-123' }
+      );
+      expect(mockAreaDoc.save).toHaveBeenCalled();
+      expect(dbAreaRes.id).toBe('target-db-area');
+
+      // Test userSavedTarget branch
+      jest.spyOn(Areas, 'findOne').mockResolvedValue(null);
+      const mockUser = {
+        email: 'user@realtor.com',
+        savedAreas: [{ id: 'user-area-1', name: 'User Area 1', polygon: [{ lat: 43.65, lng: -79.38 }] }],
+        save: jest.fn().mockResolvedValue(true),
+      };
+      jest.spyOn(User, 'findOne').mockResolvedValue(mockUser as any);
+
+      const userAreaRes = await resolvers.Mutation.executeAreaSearch(
+        null,
+        { areaId: 'user-area-1' },
+        { token: 'mock-token-user-123' }
+      );
+      expect(userAreaRes.name).toBe('User Area 1');
+      expect(mockUser.save).toHaveBeenCalled();
+
+      // Test memTarget branch
+      jest.spyOn(User, 'findOne').mockResolvedValue(null);
+      await resolvers.Mutation.saveUserArea(
+        null,
+        { name: 'Memory Area', polygon: [] },
+        { token: 'mock-token-user-123' }
+      );
+      const memRes = await resolvers.Mutation.executeAreaSearch(
+        null,
+        { areaId: 'nonexistent-mem-area' },
+        { token: 'mock-token-user-123' }
+      );
+      expect(memRes.name).toBe('Sample Area');
+    });
+
+    it('should transfer property using transferPropertyToCandidate and alias transferPropertyToPreCandidate', async () => {
+      const mockAreaDoc = {
+        id: 'db-transfer-area',
+        properties: [{ zpid: 'prop-200', price: 600000, address: { streetAddress: '2 Main', city: 'Toronto', state: 'ON', zipcode: 'M5V' }, location: { latitude: 43.65, longitude: -79.38 } }],
+        candidateProperties: [],
+        save: jest.fn().mockResolvedValue(true),
+      };
+      jest.spyOn(Areas, 'findOne').mockResolvedValue(mockAreaDoc as any);
+      const mockUser = {
+        email: 'user@realtor.com',
+        savedAreas: [],
+        save: jest.fn().mockResolvedValue(true),
+      };
+      jest.spyOn(User, 'findOne').mockResolvedValue(mockUser as any);
+
+      const dbTransferred = await resolvers.Mutation.transferPropertyToCandidate(
+        null,
+        { areaId: 'db-transfer-area', zpid: 'prop-200' },
+        { token: 'mock-token-user-123' }
+      );
+      expect(mockAreaDoc.save).toHaveBeenCalled();
+      expect(mockUser.save).toHaveBeenCalled();
+      expect(dbTransferred.candidateProperties).toHaveLength(1);
+
+      jest.spyOn(Areas, 'findOne').mockResolvedValue(null);
+      jest.spyOn(User, 'findOne').mockRejectedValue(new Error('DB Error'));
+
+      const aliasTransferred = await resolvers.Mutation.transferPropertyToPreCandidate(
+        null,
+        { areaId: 'fallback-transfer-area', zpid: 'prop-999' },
+        { token: 'mock-token-user-123' }
+      );
+      expect(aliasTransferred.name).toBe('Sample Area');
     });
   });
 });

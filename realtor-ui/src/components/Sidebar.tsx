@@ -118,16 +118,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 height={44}
                 borderRadius="$4"
               >
-                <XStack alignItems="center" gap="$3">
-                  <Text fontSize={18}>{item.icon}</Text>
-                  {!isCollapsed && (
-                    <Text
-                      color={isMainActive ? '#ffffff' : '#cbd5e1'}
-                      fontWeight={isMainActive ? '700' : '500'}
-                      fontSize={14}
-                    >
-                      {item.label}
-                    </Text>
+                <XStack alignItems="center" justifyContent="space-between" width="100%">
+                  <XStack alignItems="center" gap="$3">
+                    <Text fontSize={18}>{item.icon}</Text>
+                    {!isCollapsed && (
+                      <Text
+                        color={isMainActive ? '#ffffff' : '#cbd5e1'}
+                        fontWeight={isMainActive ? '700' : '500'}
+                        fontSize={14}
+                      >
+                        {item.label}
+                      </Text>
+                    )}
+                  </XStack>
+                  {item.id === 'areas' && !isCollapsed && savedAreas.length > 0 && (
+                    <XStack alignItems="center" gap="$1" backgroundColor="#334155" paddingHorizontal="$2" paddingVertical={2} borderRadius="$2">
+                      <Text fontSize={11} color="#94a3b8" fontWeight="700">
+                        {savedAreas.length}
+                      </Text>
+                      <Text fontSize={10} color="#94a3b8">
+                        ▼
+                      </Text>
+                    </XStack>
                   )}
                 </XStack>
               </Button>

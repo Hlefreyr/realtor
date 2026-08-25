@@ -53,6 +53,59 @@ describe('Property API Integration Unit Tests', () => {
       expect(PropertyData.findOneAndUpdate).toHaveBeenCalled();
     });
 
+    it('should search by address and return mock data when no API key is provided', async () => {
+      const provider = new RapidApiRealEstateProvider();
+      const res = await provider.searchByAddress('2692B Hwy 528 (Wolseley Bay Road), Noelville, Ontario P0M2N0');
+      expect(res.status).toBe('OK');
+      expect(res.data.props[0].address.city).toBe('Noelville');
+    });
+
+    it('should search by address using RapidAPI when API key is provided', async () => {
+      process.env.RAPIDAPI_KEY = 'test-key-123';
+      process.env.RAPIDAPI_HOST = 'real-time-real-estate-data.p.rapidapi.com';
+
+      const mockApiResponse = {
+        status: 'OK',
+        data: {
+          totalResultCount: 1,
+          props: [{ zpid: '111', address: { streetAddress: '2692B Hwy 528', city: 'Noelville' } }],
+        },
+      };
+
+      const mockReq = new EventEmitter() as any;
+      mockReq.setTimeout = jest.fn();
+      mockReq.destroy = jest.fn();
+
+      jest.spyOn(https, 'get').mockImplementation((url: any, options: any, callback: any) => {
+        const mockRes = new EventEmitter() as any;
+        callback(mockRes);
+        mockRes.emit('data', JSON.stringify(mockApiResponse));
+        mockRes.emit('end');
+        return mockReq;
+      });
+
+      const provider = new RapidApiRealEstateProvider();
+      const res = await provider.searchByAddress('2692B Hwy 528, Noelville, ON');
+      expect(res).toEqual(mockApiResponse);
+    });
+
+    it('should handle API error gracefully in searchByAddress', async () => {
+      process.env.RAPIDAPI_KEY = 'test-key-123';
+
+      jest.spyOn(https, 'get').mockImplementation((url: any, options: any, callback: any) => {
+        const req = new EventEmitter() as any;
+        req.setTimeout = jest.fn();
+        req.destroy = jest.fn();
+        process.nextTick(() => req.emit('error', new Error('Network error')));
+        return req;
+      });
+
+      const provider = new RapidApiRealEstateProvider();
+      const res = await provider.searchByAddress('Invalid address');
+      expect(res.status).toBe('ERROR');
+      expect(res.message).toBe('Network error');
+    });
+
     it('should fetch from RapidAPI when apiKey is provided and parse complete response', async () => {
       process.env.RAPIDAPI_KEY = 'test-key-123';
       process.env.RAPIDAPI_HOST = 'real-time-real-estate-data.p.rapidapi.com';

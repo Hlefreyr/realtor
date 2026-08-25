@@ -12,6 +12,7 @@ const config: Config = {
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/index.ts', // Exclude main entry point runner from unit tests
+    '!src/scripts/**/*.ts', // Exclude CLI script runners from unit tests
     '!src/**/*.d.ts',
   ],
   coverageDirectory: 'coverage',

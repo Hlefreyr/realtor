@@ -10,6 +10,59 @@ interface DashboardLayoutProps {
   userRole: 'admin' | 'user';
 }
 
+const DEFAULT_SAVED_AREAS: SavedArea[] = [
+  {
+    id: 'area-1',
+    name: 'Downtown Commercial',
+    polygon: [
+      { lat: 43.6492, lng: -79.3838 },
+      { lat: 43.652, lng: -79.375 },
+      { lat: 43.645, lng: -79.372 },
+    ],
+    properties: [
+      {
+        zpid: 'prop-101',
+        price: 850000,
+        currency: 'CAD',
+        address: { streetAddress: '290 Bremner Blvd Unit 1402', city: 'Toronto', state: 'ON', zipcode: 'M5V 3L9', country: 'CA' },
+        location: { latitude: 43.6492, longitude: -79.3838 },
+        bedrooms: 2,
+        bathrooms: 2,
+        livingArea: 880,
+        homeType: 'CONDO',
+        homeStatus: 'FOR_SALE',
+      },
+    ],
+    candidateProperties: [
+      {
+        zpid: 'cand-201',
+        price: 1250000,
+        currency: 'CAD',
+        address: { streetAddress: '88 Harbour St Unit 2204', city: 'Toronto', state: 'ON', zipcode: 'M5J 0B7', country: 'CA' },
+        location: { latitude: 43.651, longitude: -79.378 },
+        bedrooms: 3,
+        bathrooms: 2.5,
+        livingArea: 1240,
+        homeType: 'CONDO',
+        homeStatus: 'FOR_SALE',
+      },
+    ],
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'area-2',
+    name: 'West End Loft',
+    polygon: [
+      { lat: 43.642, lng: -79.412 },
+      { lat: 43.646, lng: -79.405 },
+      { lat: 43.639, lng: -79.401 },
+    ],
+    properties: [],
+    candidateProperties: [],
+    createdAt: new Date().toISOString(),
+  },
+];
+
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   userRole,
 }) => {
@@ -22,7 +75,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     radius: 50,
   });
 
-  const [savedAreas, setSavedAreas] = useState<SavedArea[]>([]);
+  const [savedAreas, setSavedAreas] = useState<SavedArea[]>(DEFAULT_SAVED_AREAS);
 
   const handleUpdateSettings = (newSettings: { unit: 'kilometers' | 'miles'; radius: number }) => {
     setSettings(newSettings);

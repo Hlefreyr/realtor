@@ -2,7 +2,7 @@
   "name": "realtor-root",
   "version": "1.0.0",
   "description": "Realtor Full-Stack Real Estate Platform",
-  "license": "BSD-3-Clause",
+  "license": "UNLICENSED",
   "private": true,
   "scripts": {
     "setup": "./scripts/setup.sh",

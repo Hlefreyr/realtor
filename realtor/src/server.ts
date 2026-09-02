@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import { ApolloServer } from '@apollo/server';
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { expressMiddleware } from '@apollo/server/express4';
 import cors from 'cors';
 import { typeDefs } from './schema/typeDefs';
@@ -12,17 +13,42 @@ export interface AppServer {
   stop: () => Promise<void>;
 }
 
-export const createServer = async (): Promise<AppServer> => {
+export interface ServerOptions {
+  isProduction?: boolean;
+}
+
+export const createServer = async (options?: ServerOptions): Promise<AppServer> => {
   const app: Application = express();
+
+  const isProduction =
+    options?.isProduction !== undefined
+      ? options.isProduction
+      : process.env.NODE_ENV === 'production' || process.env.APP_ENV === 'production';
 
   const apolloServer = new ApolloServer({
     typeDefs,
     resolvers,
+    introspection: !isProduction,
+    plugins: isProduction ? [ApolloServerPluginLandingPageDisabled()] : [],
   });
 
   await apolloServer.start();
 
-  app.use(cors());
+  const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const isAllowed = /^https?:\/\/(localhost|127\.0\.0\.1|([a-zA-Z0-9-]+\.)?(hlefreyr|flefreyr)\.(org|com))(:\d+)?$/i.test(
+        origin
+      );
+      if (isAllowed) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  };
+
+  app.use(cors(corsOptions));
 
   // Rest health check endpoint
   app.get('/health', (_req: Request, res: Response) => {
@@ -32,7 +58,7 @@ export const createServer = async (): Promise<AppServer> => {
   // Apollo GraphQL endpoint
   app.use(
     '/graphql',
-    cors(),
+    cors(corsOptions),
     express.json(),
     expressMiddleware(apolloServer, {
       context: async ({ req }) => ({ token: req.headers.authorization }),

@@ -53,3 +53,18 @@ All features and functionality across the application must be covered across the
 
 - **Autosave Standard**: All text input fields across the user interface should automatically save when the user stops typing (debounced autosave).
 
+---
+
+## 5. User Interaction Guidelines
+
+### Query Phrasing vs. Commands
+* **"Can you ...?" Queries**: Whenever the user asks a question framed with "Can you..." and ending in a question mark (e.g., *"Can you review the code changes?"*, *"Can you run the tests?"*), treat this strictly as an inquiry requiring a direct, informative response (e.g., explaining capabilities, requirements, readiness, or limitations).
+* **No Unsolicited Action**: Do NOT interpret "Can you ...?" questions as commands to trigger tools, modify files, or execute background commands unless the user explicitly follows up with an imperative command (e.g., *"Please do so"*, *"Proceed"*, *"Review it now"*).
+
+### "Rebuild App" Command Protocol
+* **Trigger**: When the user says *"rebuild app"*, *"rebuild the app"*, or similar imperative command.
+* **Procedure**:
+  1. Stop relevant Docker containers (`docker compose down` or stopping target containers).
+  2. Rebuild the container images (`docker compose build` or `docker compose up -d --build`).
+  3. Start all containers in the background.
+  4. Verify service health and ensure database seeding is completed.

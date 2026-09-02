@@ -5,11 +5,17 @@
   "license": "BSD-3-Clause",
   "private": true,
   "scripts": {
+    "setup": "./scripts/setup.sh",
+    "start": "docker compose up -d",
+    "stop": "docker compose down",
+    "restart": "docker compose restart",
+    "logs": "docker compose logs -f",
+    "seed": "docker compose exec realtor npm run seed",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "npm --prefix realtor test",
     "test:frontend": "npm --prefix realtor-ui test",
-    "test:e2e": "npm --prefix realtor-ui/e2e test",
-    "docker:up": "docker compose up -d --build",
-    "docker:down": "docker compose down"
+    "test:e2e": "npm --prefix realtor-ui/e2e test"
   }
 }

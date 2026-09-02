@@ -150,11 +150,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
   };
 
-  const fillQuickAcc = (quickEmail: string, quickPass: string) => {
-    setEmail(quickEmail);
-    setPassword(quickPass);
-    performLogin(quickEmail, quickPass);
-  };
 
   return (
     <YStack
@@ -325,48 +320,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           </Text>
         </Button>
 
-        {/* Quick Demo Pre-Seeded Users Helper */}
-        <YStack
-          backgroundColor="#f8fafc"
-          borderRadius="$4"
-          padding="$3"
-          gap="$2"
-          borderColor="#e2e8f0"
-          borderWidth={1}
-        >
-          <Text fontSize={12} fontWeight="700" color="#64748b" textTransform="uppercase">
-            Pre-seeded Test Accounts:
-          </Text>
-          <XStack gap="$2" flexWrap="wrap">
-            <Button
-              testID="quick-admin-button"
-              size="$2"
-              backgroundColor="#eff6ff"
-              borderColor="#bfdbfe"
-              borderWidth={1}
-              hoverStyle={{ backgroundColor: '#dbeafe' }}
-              onPress={() => fillQuickAcc('admin@realtor.com', 'admin')}
-            >
-              <Text pointerEvents="none" fontSize={12} color="#1d4ed8" fontWeight="600">
-                Admin: admin@realtor.com
-              </Text>
-            </Button>
-
-            <Button
-              testID="quick-user-button"
-              size="$2"
-              backgroundColor="#f0fdf4"
-              borderColor="#bbf7d0"
-              borderWidth={1}
-              hoverStyle={{ backgroundColor: '#dcfce7' }}
-              onPress={() => fillQuickAcc('user@realtor.com', 'user')}
-            >
-              <Text pointerEvents="none" fontSize={12} color="#15803d" fontWeight="600">
-                User: user@realtor.com
-              </Text>
-            </Button>
-          </XStack>
-        </YStack>
       </YStack>
     </YStack>
   );

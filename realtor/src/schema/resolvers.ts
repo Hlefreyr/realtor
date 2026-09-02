@@ -1,7 +1,57 @@
+import { GraphQLError } from 'graphql';
 import { User, IPoint, ISavedArea, IUserSettings, ISearchCriteria } from '../models/User';
 import { Areas, IAreas } from '../models/Areas';
 import { RealEstateProviderFactory, DEFAULT_SAMPLE_PROPERTIES } from '../services/RealEstateProvider';
 import { IPropertyListing } from '../models/PropertyData';
+
+export interface AuthContextUser {
+  userId: string;
+  email: string;
+  role: 'admin' | 'user';
+}
+
+export const isProductionEnv = (): boolean => {
+  return process.env.NODE_ENV === 'production' || process.env.APP_ENV === 'production';
+};
+
+export const requireAuth = (context: any): AuthContextUser => {
+  if (context && context.user) {
+    return context.user;
+  }
+
+  const rawToken = context?.token || '';
+  const token = typeof rawToken === 'string' ? rawToken.replace(/^Bearer\s+/i, '').trim() : '';
+
+  if (!token) {
+    if (isProductionEnv()) {
+      throw new GraphQLError('Authentication required. Please log in.', {
+        extensions: { code: 'UNAUTHENTICATED', http: { status: 401 } },
+      });
+    }
+    return {
+      userId: 'user-id-456',
+      email: 'user@realtor.com',
+      role: 'user',
+    };
+  }
+
+  const isAdmin = token.includes('admin');
+  return {
+    userId: isAdmin ? 'admin-id-123' : 'user-id-456',
+    email: isAdmin ? 'admin@realtor.com' : 'user@realtor.com',
+    role: isAdmin ? 'admin' : 'user',
+  };
+};
+
+export const requireAdmin = (context: any): AuthContextUser => {
+  const user = requireAuth(context);
+  if (user.role !== 'admin' && isProductionEnv()) {
+    throw new GraphQLError('Admin access required.', {
+      extensions: { code: 'FORBIDDEN', http: { status: 403 } },
+    });
+  }
+  return user;
+};
 
 const DEFAULT_SEARCH_CRITERIA: ISearchCriteria = {
   statusType: 'ForSale',
@@ -60,16 +110,10 @@ export const resolvers = {
       if (context && context.user) {
         return context.user;
       }
-
-      let userId = 'user-id-456';
-      let email = 'user@realtor.com';
-      let role = 'user';
-
-      if (context && context.token && context.token.includes('admin')) {
-        userId = 'admin-id-123';
-        email = 'admin@realtor.com';
-        role = 'admin';
-      }
+      const authUser = requireAuth(context);
+      const userId = authUser.userId;
+      const email = authUser.email;
+      const role = authUser.role;
 
       try {
         const dbUser = await User.findOne({ email });
@@ -154,9 +198,7 @@ export const resolvers = {
       { unit, radius }: { unit: 'kilometers' | 'miles'; radius: number },
       context: any
     ) => {
-      const isAdminToken = Boolean(context && context.token && context.token.includes('admin'));
-      const userId = isAdminToken ? 'admin-id-123' : 'user-id-456';
-      const email = isAdminToken ? 'admin@realtor.com' : 'user@realtor.com';
+      const { userId, email } = requireAuth(context);
 
       try {
         const user = await User.findOne({ email });
@@ -189,9 +231,7 @@ export const resolvers = {
       { input }: { input: Partial<ISearchCriteria> },
       context: any
     ) => {
-      const isAdminToken = Boolean(context && context.token && context.token.includes('admin'));
-      const userId = isAdminToken ? 'admin-id-123' : 'user-id-456';
-      const email = isAdminToken ? 'admin@realtor.com' : 'user@realtor.com';
+      const { userId, email } = requireAuth(context);
 
       try {
         const user = await User.findOne({ email });
@@ -228,9 +268,7 @@ export const resolvers = {
       { name, polygon }: { name: String; polygon: IPoint[] },
       context: any
     ) => {
-      const isAdminToken = Boolean(context && context.token && context.token.includes('admin'));
-      const userId = isAdminToken ? 'admin-id-123' : 'user-id-456';
-      const email = isAdminToken ? 'admin@realtor.com' : 'user@realtor.com';
+      const { userId, email } = requireAuth(context);
 
       const newAreaId = `area-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const areaName = (name || 'Custom Search Area').toString();
@@ -278,9 +316,7 @@ export const resolvers = {
     },
 
     deleteUserArea: async (_: any, { id }: { id: string }, context: any) => {
-      const isAdminToken = Boolean(context && context.token && context.token.includes('admin'));
-      const userId = isAdminToken ? 'admin-id-123' : 'user-id-456';
-      const email = isAdminToken ? 'admin@realtor.com' : 'user@realtor.com';
+      const { userId, email } = requireAuth(context);
 
       try {
         await Areas.deleteOne({ id, userId: email });
@@ -300,9 +336,7 @@ export const resolvers = {
     },
 
     executeAreaSearch: async (_: any, { areaId }: { areaId: string }, context: any) => {
-      const isAdminToken = Boolean(context && context.token && context.token.includes('admin'));
-      const userId = isAdminToken ? 'admin-id-123' : 'user-id-456';
-      const email = isAdminToken ? 'admin@realtor.com' : 'user@realtor.com';
+      const { userId, email } = requireAuth(context);
 
       let user: any = null;
       let targetDbArea: any = null;
@@ -372,9 +406,7 @@ export const resolvers = {
       { areaId, zpid }: { areaId: string; zpid: string },
       context: any
     ) => {
-      const isAdminToken = Boolean(context && context.token && context.token.includes('admin'));
-      const userId = isAdminToken ? 'admin-id-123' : 'user-id-456';
-      const email = isAdminToken ? 'admin@realtor.com' : 'user@realtor.com';
+      const { userId, email } = requireAuth(context);
 
       let user: any = null;
       let targetDbArea: any = null;

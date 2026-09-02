@@ -67,13 +67,26 @@ describe('LoginModal UI Component Tests', () => {
     // Defaults to true, pressing checkbox toggles to false
     fireEvent.press(checkbox);
 
-    const quickUser = getByTestId('quick-user-button');
-    fireEvent.press(quickUser);
+    fireEvent.changeText(getByTestId('login-email-input'), 'user@realtor.com');
+    fireEvent.changeText(getByTestId('login-password-input'), 'user');
+    fireEvent.press(getByTestId('login-submit-button'));
 
     expect(mockSuccess).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'user@realtor.com' }),
       false
     );
+  });
+
+  it('should toggle Stay signed in when label or container is pressed', () => {
+    const { getByTestId } = renderWithTamagui(
+      <LoginModal isOpen={true} onClose={jest.fn()} onSuccess={jest.fn()} />
+    );
+
+    const label = getByTestId('login-stay-signed-in-label');
+    fireEvent.press(label);
+
+    const container = getByTestId('login-stay-signed-in-container');
+    fireEvent.press(container);
   });
 
   it('should submit login when Enter key is pressed in password input', async () => {
@@ -99,24 +112,13 @@ describe('LoginModal UI Component Tests', () => {
     });
   });
 
-  it('should populate quick demo admin and user credentials when quick buttons pressed', () => {
-    const { getByTestId } = renderWithTamagui(
+  it('should not render pre-seeded test accounts helper buttons', () => {
+    const { queryByTestId } = renderWithTamagui(
       <LoginModal isOpen={true} onClose={jest.fn()} onSuccess={jest.fn()} />
     );
 
-    const quickAdmin = getByTestId('quick-admin-button');
-    fireEvent.press(quickAdmin);
-
-    const emailInput = getByTestId('login-email-input');
-    const passwordInput = getByTestId('login-password-input');
-
-    expect(emailInput.props.value).toBe('admin@realtor.com');
-    expect(passwordInput.props.value).toBe('admin');
-
-    const quickUser = getByTestId('quick-user-button');
-    fireEvent.press(quickUser);
-    expect(emailInput.props.value).toBe('user@realtor.com');
-    expect(passwordInput.props.value).toBe('user');
+    expect(queryByTestId('quick-admin-button')).toBeNull();
+    expect(queryByTestId('quick-user-button')).toBeNull();
   });
 
   it('should trigger web onChange handler with e.target and e.nativeEvent fallbacks', () => {

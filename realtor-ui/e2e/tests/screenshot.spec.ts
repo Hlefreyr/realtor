@@ -23,7 +23,9 @@ test('capture screenshots for walkthrough artifact', async ({ page }) => {
   });
 
   // 3. User Dashboard View
-  await page.getByTestId('quick-user-button').click();
+  await page.getByTestId('login-email-input').fill('user@realtor.com');
+  await page.getByTestId('login-password-input').fill('user');
+  await page.getByTestId('login-submit-button').click();
   await expect(page.getByTestId('dashboard-view-container')).toBeVisible();
   await page.screenshot({
     path: path.join(ARTIFACT_DIR, 'dashboard_view_screenshot.png'),
@@ -33,7 +35,9 @@ test('capture screenshots for walkthrough artifact', async ({ page }) => {
   // 4. Admin Panel View
   await page.getByTestId('logout-button').click();
   await page.getByTestId('login-button').click();
-  await page.getByTestId('quick-admin-button').click();
+  await page.getByTestId('login-email-input').fill('admin@realtor.com');
+  await page.getByTestId('login-password-input').fill('admin');
+  await page.getByTestId('login-submit-button').click();
   await page.getByTestId('sidebar-item-admin').click();
   await expect(page.getByTestId('admin-view-container')).toBeVisible();
   await page.screenshot({

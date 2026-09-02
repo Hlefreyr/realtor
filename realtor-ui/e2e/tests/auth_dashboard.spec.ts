@@ -12,8 +12,10 @@ test.describe('Authentication & Role-Based Dashboard E2E Tests', () => {
     await page.getByTestId('login-button').click();
     await expect(page.getByTestId('login-modal-content')).toBeVisible();
 
-    // 2. Click Quick User helper button (user@realtor.com)
-    await page.getByTestId('quick-user-button').click();
+    // 2. Fill User credentials and submit (user@realtor.com)
+    await page.getByTestId('login-email-input').fill('user@realtor.com');
+    await page.getByTestId('login-password-input').fill('user');
+    await page.getByTestId('login-submit-button').click();
 
     // 3. Verify user badge in Header & Dashboard view container
     await expect(page.getByTestId('user-email-badge')).toHaveText('user@realtor.com');
@@ -48,8 +50,10 @@ test.describe('Authentication & Role-Based Dashboard E2E Tests', () => {
     await page.getByTestId('login-button').click();
     await expect(page.getByTestId('login-modal-content')).toBeVisible();
 
-    // 2. Click Quick Admin helper button (admin@realtor.com)
-    await page.getByTestId('quick-admin-button').click();
+    // 2. Fill Admin credentials and submit (admin@realtor.com)
+    await page.getByTestId('login-email-input').fill('admin@realtor.com');
+    await page.getByTestId('login-password-input').fill('admin');
+    await page.getByTestId('login-submit-button').click();
 
     // 3. Verify admin user badge
     await expect(page.getByTestId('user-email-badge')).toHaveText('admin@realtor.com');
@@ -71,7 +75,9 @@ test.describe('Authentication & Role-Based Dashboard E2E Tests', () => {
     await page.setViewportSize({ width: 375, height: 667 });
 
     await page.getByTestId('login-button').click();
-    await page.getByTestId('quick-user-button').click();
+    await page.getByTestId('login-email-input').fill('user@realtor.com');
+    await page.getByTestId('login-password-input').fill('user');
+    await page.getByTestId('login-submit-button').click();
 
     await expect(page.getByTestId('dashboard-layout-container')).toBeVisible();
     await expect(page.getByTestId('user-email-badge')).toHaveText('user@realtor.com');

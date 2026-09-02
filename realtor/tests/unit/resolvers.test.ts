@@ -437,5 +437,29 @@ describe('GraphQL Resolvers Unit Tests', () => {
       );
       expect(aliasTransferred.name).toBe('Sample Area');
     });
+
+    it('should throw UNAUTHENTICATED error in production mode when no token is supplied', async () => {
+      const prevEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        await expect(resolvers.Query.me(null, null, {})).rejects.toThrow(/Authentication required/);
+        await expect(resolvers.Mutation.updateUserSettings(null, { unit: 'miles', radius: 10 }, {})).rejects.toThrow(
+          /Authentication required/
+        );
+      } finally {
+        process.env.NODE_ENV = prevEnv;
+      }
+    });
+
+    it('should accept Bearer prefixed token in production mode', async () => {
+      const prevEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        const user = await resolvers.Query.me(null, null, { token: 'Bearer mock-token-user-123' });
+        expect(user.role).toBe('user');
+      } finally {
+        process.env.NODE_ENV = prevEnv;
+      }
+    });
   });
 });

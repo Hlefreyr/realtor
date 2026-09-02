@@ -147,21 +147,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'typing':
-        return <Text fontSize={11} color="#f59e0b" fontWeight="600">● Typing...</Text>;
-      case 'saving':
-        return <Text fontSize={11} color="#3b82f6" fontWeight="600">● Autosaving...</Text>;
-      case 'saved':
-        return <Text fontSize={11} color="#10b981" fontWeight="600">✓ Saved</Text>;
-      case 'error':
-        return <Text fontSize={11} color="#ef4444" fontWeight="600">⚠ Error saving</Text>;
-      default:
-        return <Text fontSize={11} color="#94a3b8" fontWeight="600">Auto-saves on edit</Text>;
-    }
-  };
-
   return (
     <YStack testID="settings-view-container" gap="$5" width="100%">
       <YStack gap="$1">
@@ -191,12 +176,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </Text>
 
           <YStack gap="$1.5">
-            <XStack justifyContent="space-between" alignItems="center">
-              <Text fontSize={13} fontWeight="600" color="#334155">
-                Display Name
-              </Text>
-              {getStatusBadge(nameAutosave.status)}
-            </XStack>
+            <Text fontSize={13} fontWeight="600" color="#334155">
+              Full Name
+            </Text>
             <Input
               testID="settings-name-input"
               value={nameAutosave.value}
@@ -208,12 +190,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </YStack>
 
           <YStack gap="$1.5">
-            <XStack justifyContent="space-between" alignItems="center">
-              <Text fontSize={13} fontWeight="600" color="#334155">
-                Contact Email
-              </Text>
-              {getStatusBadge(emailAutosave.status)}
-            </XStack>
+            <Text fontSize={13} fontWeight="600" color="#334155">
+              Contact Email
+            </Text>
             <Input
               testID="settings-email-input"
               value={emailAutosave.value}
@@ -239,7 +218,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           testID="settings-units-card"
         >
           <Text fontSize={18} fontWeight="700" color="#0f172a">
-            Units & Distance Preferences
+            Distance Units & Radius
           </Text>
 
           <YStack gap="$1.5">
@@ -251,8 +230,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 testID="unit-km-button"
                 flex={1}
                 height={40}
-                backgroundColor={selectedUnit === 'kilometers' ? '#2563eb' : '#f1f5f9'}
-                hoverStyle={{ backgroundColor: selectedUnit === 'kilometers' ? '#1d4ed8' : '#e2e8f0' }}
+                backgroundColor={selectedUnit === 'kilometers' ? '#059669' : '#f1f5f9'}
                 onPress={() => handleUnitChange('kilometers')}
                 borderRadius="$3"
               >
@@ -269,8 +247,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 testID="unit-miles-button"
                 flex={1}
                 height={40}
-                backgroundColor={selectedUnit === 'miles' ? '#2563eb' : '#f1f5f9'}
-                hoverStyle={{ backgroundColor: selectedUnit === 'miles' ? '#1d4ed8' : '#e2e8f0' }}
+                backgroundColor={selectedUnit === 'miles' ? '#059669' : '#f1f5f9'}
                 onPress={() => handleUnitChange('miles')}
                 borderRadius="$3"
               >
@@ -286,12 +263,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </YStack>
 
           <YStack gap="$1.5">
-            <XStack justifyContent="space-between" alignItems="center">
-              <Text fontSize={13} fontWeight="600" color="#334155">
-                Default Search Radius ({selectedUnit === 'miles' ? 'miles' : 'km'})
-              </Text>
-              {getStatusBadge(radiusAutosave.status)}
-            </XStack>
+            <Text fontSize={13} fontWeight="600" color="#334155">
+              Default Search Radius ({selectedUnit === 'miles' ? 'miles' : 'km'})
+            </Text>
             <Input
               testID="settings-radius-input"
               value={radiusAutosave.value}
@@ -367,10 +341,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
           {/* Price Min & Max */}
           <YStack flex={1} minWidth={220} gap="$1.5">
-            <XStack justifyContent="space-between">
-              <Text fontSize={13} fontWeight="600" color="#334155">Min Price ($)</Text>
-              {getStatusBadge(priceMinAutosave.status)}
-            </XStack>
+            <Text fontSize={13} fontWeight="600" color="#334155">Min Price ($)</Text>
             <Input
               testID="settings-price-min-input"
               value={priceMinAutosave.value}
@@ -382,10 +353,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </YStack>
 
           <YStack flex={1} minWidth={220} gap="$1.5">
-            <XStack justifyContent="space-between">
-              <Text fontSize={13} fontWeight="600" color="#334155">Max Price ($)</Text>
-              {getStatusBadge(priceMaxAutosave.status)}
-            </XStack>
+            <Text fontSize={13} fontWeight="600" color="#334155">Max Price ($)</Text>
             <Input
               testID="settings-price-max-input"
               value={priceMaxAutosave.value}
@@ -400,10 +368,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <XStack gap="$4" flexWrap="wrap">
           {/* Beds Range */}
           <YStack flex={1} minWidth={160} gap="$1.5">
-            <XStack justifyContent="space-between">
-              <Text fontSize={13} fontWeight="600" color="#334155">Min Beds</Text>
-              {getStatusBadge(bedsMinAutosave.status)}
-            </XStack>
+            <Text fontSize={13} fontWeight="600" color="#334155">Min Beds</Text>
             <Input
               testID="settings-beds-min-input"
               value={bedsMinAutosave.value}
@@ -415,10 +380,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </YStack>
 
           <YStack flex={1} minWidth={160} gap="$1.5">
-            <XStack justifyContent="space-between">
-              <Text fontSize={13} fontWeight="600" color="#334155">Max Beds</Text>
-              {getStatusBadge(bedsMaxAutosave.status)}
-            </XStack>
+            <Text fontSize={13} fontWeight="600" color="#334155">Max Beds</Text>
             <Input
               testID="settings-beds-max-input"
               value={bedsMaxAutosave.value}
@@ -431,10 +393,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
           {/* Baths Range */}
           <YStack flex={1} minWidth={160} gap="$1.5">
-            <XStack justifyContent="space-between">
-              <Text fontSize={13} fontWeight="600" color="#334155">Min Baths</Text>
-              {getStatusBadge(bathsMinAutosave.status)}
-            </XStack>
+            <Text fontSize={13} fontWeight="600" color="#334155">Min Baths</Text>
             <Input
               testID="settings-baths-min-input"
               value={bathsMinAutosave.value}
@@ -446,10 +405,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </YStack>
 
           <YStack flex={1} minWidth={160} gap="$1.5">
-            <XStack justifyContent="space-between">
-              <Text fontSize={13} fontWeight="600" color="#334155">Max Baths</Text>
-              {getStatusBadge(bathsMaxAutosave.status)}
-            </XStack>
+            <Text fontSize={13} fontWeight="600" color="#334155">Max Baths</Text>
             <Input
               testID="settings-baths-max-input"
               value={bathsMaxAutosave.value}
@@ -462,10 +418,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
           {/* Max Days on Market */}
           <YStack flex={1} minWidth={160} gap="$1.5">
-            <XStack justifyContent="space-between">
-              <Text fontSize={13} fontWeight="600" color="#334155">Max Days Listed</Text>
-              {getStatusBadge(daysOnMarketAutosave.status)}
-            </XStack>
+            <Text fontSize={13} fontWeight="600" color="#334155">Max Days Listed</Text>
             <Input
               testID="settings-days-market-input"
               value={daysOnMarketAutosave.value}

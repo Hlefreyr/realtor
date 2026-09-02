@@ -51,7 +51,7 @@ All features and functionality across the application must be covered across the
 
 ## 4. UI Governance & Interaction Rules
 
-- **Autosave Standard**: All text input fields across the user interface should automatically save when the user stops typing (debounced autosave).
+- **Autosave Standard**: All text input fields across the user interface should automatically save when the user stops typing (debounced autosave). Autosave operations must be silent without displaying "Saved", "Autosaving...", or status confirmation badges above input controls.
 
 ---
 

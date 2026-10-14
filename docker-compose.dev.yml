@@ -3,6 +3,7 @@ services:
     image: mongo:7
     container_name: realtor-mongo
     restart: unless-stopped
+    command: ["mongod", "--wiredTigerCacheSizeGB", "0.5"]
     ports:
       - "27017:27017"
     healthcheck:
@@ -15,6 +16,14 @@ services:
       - mongo_data:/data/db
     networks:
       - realtor-network
+    mem_limit: 1536m
+    mem_reservation: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+        reservations:
+          memory: 512M
 
   mongo-express:
     image: mongo-express:latest
@@ -31,6 +40,14 @@ services:
         condition: service_healthy
     networks:
       - realtor-network
+    mem_limit: 384m
+    mem_reservation: 128m
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+        reservations:
+          memory: 128M
 
   realtor:
     build:
@@ -45,6 +62,7 @@ services:
       - PORT=4000
       - MONGO_URI=mongodb://mongo:27017/realtor
       - NODE_ENV=development
+      - NODE_OPTIONS=--max-old-space-size=768
     volumes:
       - ./realtor/src:/app/src
     depends_on:
@@ -52,6 +70,14 @@ services:
         condition: service_healthy
     networks:
       - realtor-network
+    mem_limit: 1024m
+    mem_reservation: 384m
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 384M
 
   realtor-ui:
     build:
@@ -65,12 +91,21 @@ services:
       - EXPO_PUBLIC_GRAPHQL_URI=http://localhost:4000/graphql
       - EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyA9edVAq_sH2WYqwQeGBJw3vp58X7tAUQg
       - NODE_ENV=development
+      - NODE_OPTIONS=--max-old-space-size=1280
     volumes:
       - ./realtor-ui/src:/app/src
     depends_on:
       - realtor
     networks:
       - realtor-network
+    mem_limit: 1536m
+    mem_reservation: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+        reservations:
+          memory: 512M
 
 volumes:
   mongo_data:

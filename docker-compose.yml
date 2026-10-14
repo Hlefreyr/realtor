@@ -3,6 +3,7 @@ services:
     image: mongo:7
     container_name: realtor-mongo
     restart: unless-stopped
+    command: ["mongod", "--wiredTigerCacheSizeGB", "0.5"]
     ports:
       - "27017:27017"
     healthcheck:
@@ -15,6 +16,14 @@ services:
       - mongo_data:/data/db
     networks:
       - realtor-network
+    mem_limit: 1536m
+    mem_reservation: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+        reservations:
+          memory: 512M
 
   mongo-express:
     image: mongo-express:latest
@@ -31,6 +40,14 @@ services:
         condition: service_healthy
     networks:
       - realtor-network
+    mem_limit: 384m
+    mem_reservation: 128m
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+        reservations:
+          memory: 128M
 
   realtor:
     build:
@@ -44,6 +61,7 @@ services:
       - PORT=4000
       - MONGO_URI=mongodb://mongo:27017/realtor
       - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=768
     volumes:
       - ./realtor:/app
       - /app/node_modules
@@ -52,6 +70,14 @@ services:
         condition: service_healthy
     networks:
       - realtor-network
+    mem_limit: 1024m
+    mem_reservation: 384m
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 384M
 
   realtor-ui:
     build:
@@ -68,6 +94,7 @@ services:
       - EXPO_OFFLINE=1
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      - NODE_OPTIONS=--max-old-space-size=1280
     volumes:
       - ./realtor-ui:/app
       - /app/node_modules
@@ -76,6 +103,14 @@ services:
       - realtor
     networks:
       - realtor-network
+    mem_limit: 1536m
+    mem_reservation: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+        reservations:
+          memory: 512M
 
 volumes:
   mongo_data:
